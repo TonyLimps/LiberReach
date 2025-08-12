@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollBar?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1360.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tonylimps.filerelay.windows.controllers.MainController">
+   <children>
+      <MenuBar>
+        <menus>
+          <Menu mnemonicParsing="false" text="%main.menu.file">
+            <items>
+              <MenuItem fx:id="fileSettingsMenuItem" mnemonicParsing="false" onAction="#onFileSettingsButtonClick" text="%main.menu.file.settings" />
+                  <MenuItem fx:id="fileExitMenuItem" mnemonicParsing="false" onAction="#onFileExitButtonClick" text="%main.menu.file.exit" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="%main.menu.help">
+            <items>
+              <MenuItem fx:id="helpAboutMenuItem" mnemonicParsing="false" text="%main.menu.help.about" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+      <SplitPane dividerPositions="0.15979381443298968" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1360.0">
+         <items>
+            <SplitPane dividerPositions="0.19973890339425587" minWidth="162.0" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
+               <items>
+                  <VBox>
+                     <children>
+                        <Label fx:id="nameLabel" alignment="TOP_LEFT" text="%main.label.deviceName" VBox.vgrow="ALWAYS" />
+                        <Label fx:id="IPLabel" text="%main.label.deviceIP" VBox.vgrow="ALWAYS" />
+                        <Label fx:id="portLabel" text="%main.label.devicePort" />
+                     </children>
+                  </VBox>
+                  <SplitPane dividerPositions="0.4772727272727273" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
+                     <items>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                           <children>
+                              <Label fx:id="authorizedLabel" layoutX="-1.0" text="%main.label.authorized" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                              <ListView fx:id="authorizedList" layoutX="6.0" layoutY="50.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="15.0" />
+                              <ScrollBar fx:id="authorizedScrollBar" layoutX="249.0" layoutY="81.0" orientation="VERTICAL" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="15.0" />
+                           </children>
+                        </AnchorPane>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                           <children>
+                              <Label fx:id="viewableLabel" text="%main.label.viewable" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                              <ListView fx:id="viewableList" layoutX="17.0" layoutY="48.0" minWidth="162.0" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="15.0" />
+                              <ScrollBar fx:id="viewableScrollBar" layoutX="242.0" layoutY="45.0" orientation="VERTICAL" prefHeight="196.0" prefWidth="14.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="15.0" />
+                              <Button fx:id="addDeviceButton" layoutY="294.0" mnemonicParsing="false" prefHeight="23.0" prefWidth="228.0" text="%main.button.addDevice" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="14.0" />
+                           </children>
+                        </AnchorPane>
+                     </items>
+                  </SplitPane>
+               </items>
+            </SplitPane>
+            <SplitPane dividerPositions="0.9360313315926893" orientation="VERTICAL" prefHeight="200.0" prefWidth="1066.0">
+               <items>
+                  <VBox prefHeight="200.0" prefWidth="100.0">
+                     <children>
+                        <HBox maxHeight="23.0" prefHeight="100.0" prefWidth="9999.0">
+                           <children>
+                              <Button fx:id="backButton" mnemonicParsing="false" text="%main.button.back" />
+                              <TextField fx:id="pathField" promptText="%main.textField.path" HBox.hgrow="ALWAYS" />
+                              <Button fx:id="flushButton" mnemonicParsing="false" text="%main.button.flush" />
+                              <TextField fx:id="searchField" promptText="%main.textField.search" />
+                              <Button fx:id="searchButton" mnemonicParsing="false" text="%main.button.search" />
+                           </children>
+                        </HBox>
+                        <HBox prefHeight="100.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+                           <children>
+                              <ListView fx:id="fileList" minWidth="140.0" HBox.hgrow="ALWAYS" />
+                              <ScrollBar orientation="VERTICAL" HBox.hgrow="NEVER" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+                  <VBox>
+                     <children>
+                        <Button fx:id="downloadButton" mnemonicParsing="false" text="%main.button.download" />
+                        <Button fx:id="uploadButton" mnemonicParsing="false" text="%main.button.upload" />
+                     </children>
+                  </VBox>
+               </items>
+            </SplitPane>
+         </items>
+      </SplitPane>
+   </children>
+</VBox>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tonylimps.filerelay.windows.controllers.ExceptionDialogController">
+   <children>
+      <HBox prefHeight="100.0" prefWidth="200.0">
+         <children>
+            <Label fx:id="messageLabel" prefHeight="15.0" prefWidth="9999.0" text="Message" textFill="RED" HBox.hgrow="ALWAYS">
+               <HBox.margin>
+                  <Insets bottom="25.0" left="50.0" right="50.0" top="50.0" />
+               </HBox.margin>
+            </Label>
+         </children>
+      </HBox>
+      <HBox prefHeight="388.0" prefWidth="600.0" VBox.vgrow="ALWAYS">
+         <children>
+            <TextArea fx:id="exceptionArea" prefHeight="200.0" prefWidth="200.0" text="ExceptionStackTrace" wrapText="true" HBox.hgrow="ALWAYS">
+               <HBox.margin>
+                  <Insets bottom="20.0" left="50.0" right="50.0" />
+               </HBox.margin>
+            </TextArea>
+         </children>
+      </HBox>
+      <HBox alignment="BOTTOM_RIGHT" prefHeight="100.0" prefWidth="200.0">
+         <children>
+            <Button fx:id="saveErrorLogButton" mnemonicParsing="false" onAction="#onSaveErrorLogButtonClick" text="%exception.button.saveErrorLog" HBox.hgrow="NEVER">
+               <HBox.margin>
+                  <Insets bottom="30.0" right="10.0" />
+               </HBox.margin>
+            </Button>
+            <Button mnemonicParsing="false" onAction="#onIgnoreButtonClick" text="%exception.button.ignore">
+               <HBox.margin>
+                  <Insets bottom="30.0" right="10.0" />
+               </HBox.margin>
+            </Button>
+            <Button fx:id="exitButton" mnemonicParsing="false" onAction="#onExitButtonClick" text="%exception.button.exit">
+               <HBox.margin>
+                  <Insets bottom="30.0" right="50.0" />
+               </HBox.margin>
+            </Button>
+         </children>
+      </HBox>
+   </children>
+</VBox>
