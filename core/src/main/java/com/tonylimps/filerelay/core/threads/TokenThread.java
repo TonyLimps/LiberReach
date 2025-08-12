@@ -1,52 +1,52 @@
-package com.tonylimps.filerelay.windows.threads;
+package com.tonylimps.filerelay.core.threads;
 
 import com.tonylimps.filerelay.core.Core;
-import com.tonylimps.filerelay.core.ExceptionManager;
-import com.tonylimps.filerelay.windows.Main;
-import com.tonylimps.filerelay.windows.controllers.SettingsController;
-import javafx.application.Platform;
+import com.tonylimps.filerelay.core.Token;
+import com.tonylimps.filerelay.core.managers.ExceptionManager;
 
-public class TokenThread extends Thread{
+import java.util.concurrent.atomic.AtomicBoolean;
 
-	private String uuid;
-	private String token;
-	private int timeRemaining;
+/*
+ * 这个线程用于更新token
+ * 每隔一段时间(config.tokenFlushDelaySeconds)更新一次token
+ */
+
+public class TokenThread extends Thread {
+
+	private final Token token;
 	private final ExceptionManager exceptionManager;
 	private final int flushDelaySeconds;
+	private final AtomicBoolean running;
+	private int timeRemaining;
 
 
-	public TokenThread(ExceptionManager exceptionManager){
+	public TokenThread(ExceptionManager exceptionManager, AtomicBoolean running) {
 		this.exceptionManager = exceptionManager;
-		try{
-			uuid = Main.getProfileManager().getUUID();
-		}
-		catch(Exception e){
-			exceptionManager.throwException(e);
-		}
-		flushDelaySeconds = Integer.parseInt(Main.getConfig("tokenFlushDelaySeconds"));
-	}
-
-	public String getToken() {
-		return token;
+		this.running = running;
+		flushDelaySeconds = Integer.parseInt(Core.getConfig("tokenFlushDelaySeconds"));
+		token = new Token();
 	}
 
 	public int getTimeRemaining() {
 		return timeRemaining;
 	}
 
+	public Token getToken() {
+		return token;
+	}
 
 	@Override
-	public void run(){
-		while(Main.isRunning()){
-			try{
-				token = Core.createToken(uuid);
+	public void run() {
+		while (running.get()) {
+			try {
+				token.flush();
 				timeRemaining = flushDelaySeconds;
-				for(int t = 0; t < flushDelaySeconds; t++){
+				for (int t = 0; t < flushDelaySeconds; t++) {
 					Thread.sleep(1000);
 					timeRemaining -= 1;
 				}
 			}
-			catch(Exception e){
+			catch (Exception e) {
 				exceptionManager.throwException(e);
 			}
 		}

@@ -1,41 +1,76 @@
-package com.tonylimps.filerelay.windows;
+package com.tonylimps.filerelay.core;
 
-import com.tonylimps.filerelay.core.Device;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Profile {
-    protected String deviceName;
-    protected Locale language;
-    protected List<Device> authorized;
-    protected List<Device> viewable;
+    private String deviceName;
+    private Locale locale;
+    private Integer port;
+    private HashMap<InetSocketAddress, AuthorizedDevice> authorizedDevices;
+    private HashMap<InetSocketAddress, ViewableDevice> viewableDevices;
 
-    public Profile() {
-        language = Locale.getDefault();
-        authorized = new ArrayList<>();
-        viewable = new ArrayList<>();
+    public Profile(String deviceName,Locale locale, Integer port){
+        authorizedDevices = new HashMap<>();
+        viewableDevices = new HashMap<>();
+        this.deviceName = deviceName;
+        this.locale = locale;
+        this.port = port;
     }
-    public Profile(Main main){
-        language = Locale.getDefault();
-        authorized = new ArrayList<>();
-        viewable = new ArrayList<>();
-        deviceName = main.getDeviceName();
-    }
+
     public String getDeviceName() {
         return deviceName;
     }
-    public Locale getLanguage() {
-        return language;
+    public Locale getLocale() {
+        return locale;
     }
-    public List<Device> getAuthorized() {
-        return authorized;
+    public HashMap<InetSocketAddress, AuthorizedDevice> getAuthorizedDevices() {
+        return authorizedDevices;
     }
-    public List<Device> getViewable() {
-        return viewable;
+    public HashMap<InetSocketAddress, ViewableDevice> getViewableDevices() {
+        return viewableDevices;
     }
+    public Integer getPort() {
+        return port;
+    }
+
     public void setDeviceName(String deviceName) {
         this.deviceName = deviceName;
     }
+    public void setLocale(Locale locale) {
+        this.locale = locale;
+    }
+    public void setAuthorizedDevices(HashMap<InetSocketAddress, AuthorizedDevice> authorized) {
+        this.authorizedDevices = authorized;
+    }
+    public void setViewableDevices(HashMap<InetSocketAddress, ViewableDevice> viewable) {
+        this.viewableDevices = viewable;
+    }
+    public void setPort(Integer port) {
+        this.port = port;
+    }
+
+	public void addAuthorizedDevice(AuthorizedDevice device) {
+		String name = device.getDeviceName();
+		Set<String> names = authorizedDevices.values().stream()
+			.map(AuthorizedDevice::getRemarkName)
+			.collect(Collectors.toSet());
+		device.setRemarkName(Core.rename(name,names));
+		String host = device.getHost();
+		int port = device.getPort();
+		authorizedDevices.put(new InetSocketAddress(host,port), device);
+	}
+
+	public void addViewableDevice(ViewableDevice device) {
+		String name = device.getDeviceName();
+		Set<String> names = viewableDevices.values().stream()
+											 .map(ViewableDevice::getRemarkName)
+											 .collect(Collectors.toSet());
+		device.setRemarkName(Core.rename(name,names));
+		String host = device.getHost();
+		int port = device.getPort();
+		viewableDevices.put(new InetSocketAddress(host,port), device);
+	}
 }

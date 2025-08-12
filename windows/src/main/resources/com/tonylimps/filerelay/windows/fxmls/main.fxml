@@ -13,14 +13,14 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1360.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tonylimps.filerelay.windows.controllers.MainController">
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tonylimps.filerelay.windows.controllers.MainController">
    <children>
       <MenuBar>
         <menus>
           <Menu mnemonicParsing="false" text="%main.menu.file">
             <items>
-              <MenuItem fx:id="fileSettingsMenuItem" mnemonicParsing="false" onAction="#onFileSettingsButtonClick" text="%main.menu.file.settings" />
-                  <MenuItem fx:id="fileExitMenuItem" mnemonicParsing="false" onAction="#onFileExitButtonClick" text="%main.menu.file.exit" />
+              <MenuItem fx:id="fileSettingsMenuItem" mnemonicParsing="false" onAction="#onFileSettingsButtonAction" text="%main.menu.file.settings" />
+                  <MenuItem fx:id="fileExitMenuItem" mnemonicParsing="false" onAction="#onFileExitButtonAction" text="%main.menu.file.exit" />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="%main.menu.help">
@@ -46,8 +46,9 @@
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                            <children>
                               <Label fx:id="authorizedLabel" layoutX="-1.0" text="%main.label.authorized" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                              <ListView fx:id="authorizedList" layoutX="6.0" layoutY="50.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="15.0" />
+                              <ListView fx:id="authorizedList" layoutX="6.0" layoutY="50.0" onMouseClicked="#onAuthorizedListviewClick" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="15.0" />
                               <ScrollBar fx:id="authorizedScrollBar" layoutX="249.0" layoutY="81.0" orientation="VERTICAL" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="15.0" />
+                              <Button layoutX="60.0" layoutY="251.0" mnemonicParsing="false" text="%main.button.authorizationRequests" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="14.0" />
                            </children>
                         </AnchorPane>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
@@ -55,7 +56,7 @@
                               <Label fx:id="viewableLabel" text="%main.label.viewable" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                               <ListView fx:id="viewableList" layoutX="17.0" layoutY="48.0" minWidth="162.0" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="15.0" />
                               <ScrollBar fx:id="viewableScrollBar" layoutX="242.0" layoutY="45.0" orientation="VERTICAL" prefHeight="196.0" prefWidth="14.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="15.0" />
-                              <Button fx:id="addDeviceButton" layoutY="294.0" mnemonicParsing="false" prefHeight="23.0" prefWidth="228.0" text="%main.button.addDevice" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="14.0" />
+                              <Button fx:id="addDeviceButton" layoutY="294.0" mnemonicParsing="false" onAction="#onAddButtonAction" prefHeight="23.0" prefWidth="228.0" text="%main.button.addDevice" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="14.0" />
                            </children>
                         </AnchorPane>
                      </items>

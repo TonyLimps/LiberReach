@@ -16,26 +16,15 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class CommandThread extends Thread {
+public class AuthorizedCommandThread extends CommandThread {
 
-	private AtomicBoolean running;
-	private AtomicBoolean debug;
-
-	private Profile profile;
-	private BufferedReader in;
-	private PrintWriter out;
-	private InetSocketAddress address;
-	private ExceptionManager exceptionManager;
-	private Token token;
-	private ConnectThread connectThread;
-
-	public CommandThread(Socket socket,
-						 ExceptionManager exceptionManager,
-						 Profile profile,
-						 AtomicBoolean running,
-						 Token token,
-						 AtomicBoolean debug,
-						 ConnectThread connectThread) {
+	public AuthorizedCommandThread(Socket socket,
+								   ExceptionManager exceptionManager,
+								   Profile profile,
+								   AtomicBoolean running,
+								   Token token,
+								   AtomicBoolean debug,
+								   ConnectThread connectThread) {
 		try {
 			this.address = new InetSocketAddress(socket.getInetAddress(), socket.getPort());
 			this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -51,23 +40,8 @@ public class CommandThread extends Thread {
 			exceptionManager.throwException(e);
 		}
 	}
-
 	@Override
-	public void run() {
-		while (running.get()) {
-			try {
-				String commandString = in.readLine();
-				System.out.println(commandString);
-				HashMap<String, String> command = JSON.parseObject(commandString, HashMap.class);
-				exec(command);
-			}
-			catch (IOException e) {
-				exceptionManager.throwException(e);
-			}
-		}
-	}
-
-	private void exec(HashMap<String, String> command) throws IOException {
+	protected void exec(HashMap<String, String> command) throws IOException {
 		if(debug.get()) {
 			System.out.println("Received from "+address.toString()+" :\n" + command);
 		}
@@ -96,18 +70,6 @@ public class CommandThread extends Thread {
 					));
 				}
 			}
-			case CommandTypes.ANSWER -> {
-				// 收到回应
-				switch (command.get("answerType")) {
-					// 确认回应命令类型
-					case CommandTypes.ADD -> {
-						if (command.get("content").equals(RequestResults.SUCCESS)) {
-							String name = command.get("name");
-							profile.addViewableDevice(new ViewableDevice(address.getHostName(), address.getPort(), name));
-						}
-					}
-				}
-			}
 			case CommandTypes.HEARTBEAT -> {
 				AuthorizedDevice device = connectThread.getAuthorizedDevices().get(address);
 				if(Objects.nonNull(device)) {
@@ -116,15 +78,6 @@ public class CommandThread extends Thread {
 				}
 			}
 		}
-	}
-
-	// 向已授权设备发送命令使用answer方法，向可查看设备发送命令使用send方法
-	public void send(String command) {
-		if(debug.get()) {
-			System.out.println("Sent to "+address.toString()+" :\n" + command);
-		}
-		out.println(command);
-		connectThread.getViewableDevices().get(address).setOnline(!out.checkError());
 	}
 
 	public void answer(String command) {

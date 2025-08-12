@@ -1,4 +1,47 @@
 package com.tonylimps.filerelay.core.threads;
 
-public class CommandThread {
+import com.alibaba.fastjson2.JSON;
+import com.tonylimps.filerelay.core.Profile;
+import com.tonylimps.filerelay.core.Token;
+import com.tonylimps.filerelay.core.managers.ExceptionManager;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+public class CommandThread extends Thread{
+
+	protected AtomicBoolean running;
+	protected AtomicBoolean debug;
+
+	protected Profile profile;
+	protected BufferedReader in;
+	protected PrintWriter out;
+	protected InetSocketAddress address;
+	protected ExceptionManager exceptionManager;
+	protected Token token;
+	protected ConnectThread connectThread;
+
+	public CommandThread(){}
+
+	@Override
+	public void run() {
+		while (running.get()) {
+			try {
+				String commandString = in.readLine();
+				System.out.println(commandString);
+				HashMap<String, String> command = JSON.parseObject(commandString, HashMap.class);
+				exec(command);
+			}
+			catch (IOException e) {
+				exceptionManager.throwException(e);
+			}
+		}
+	}
+
+	protected void exec(HashMap<String, String> command) throws IOException {}
+
 }

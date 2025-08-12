@@ -1,10 +1,16 @@
-module com.tonylimps.filerelay.client.windows {
+module com.tonylimps.filerelay.windows {
     requires javafx.controls;
     requires javafx.fxml;
     requires com.alibaba.fastjson2;
     requires com.tonylimps.filerelay.core;
     requires jdk.management;
+    requires java.desktop;
+	requires org.apache.logging.log4j;
 
-    opens com.tonylimps.filerelay.client.windows to javafx.fxml;
-    exports com.tonylimps.filerelay.client.windows;
+	opens com.tonylimps.filerelay.windows to javafx.fxml;
+    exports com.tonylimps.filerelay.windows;
+    exports com.tonylimps.filerelay.windows.controllers;
+    opens com.tonylimps.filerelay.windows.controllers to javafx.fxml;
+    exports com.tonylimps.filerelay.windows.managers;
+    opens com.tonylimps.filerelay.windows.managers to javafx.fxml;
 }

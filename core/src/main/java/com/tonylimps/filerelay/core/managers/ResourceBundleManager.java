@@ -1,4 +1,4 @@
-package com.tonylimps.filerelay.core;
+package com.tonylimps.filerelay.core.managers;
 
 import java.util.HashMap;
 import java.util.Locale;

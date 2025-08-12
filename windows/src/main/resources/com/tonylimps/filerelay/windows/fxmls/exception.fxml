@@ -29,17 +29,17 @@
       </HBox>
       <HBox alignment="BOTTOM_RIGHT" prefHeight="100.0" prefWidth="200.0">
          <children>
-            <Button fx:id="saveErrorLogButton" mnemonicParsing="false" onAction="#onSaveErrorLogButtonClick" text="%exception.button.saveErrorLog" HBox.hgrow="NEVER">
+            <Button fx:id="saveErrorLogButton" mnemonicParsing="false" onAction="#onSaveErrorLogButtonAction" text="%exception.button.saveErrorLog" HBox.hgrow="NEVER">
                <HBox.margin>
                   <Insets bottom="30.0" right="10.0" />
                </HBox.margin>
             </Button>
-            <Button mnemonicParsing="false" onAction="#onIgnoreButtonClick" text="%exception.button.ignore">
+            <Button mnemonicParsing="false" onAction="#onIgnoreButtonAction" text="%exception.button.ignore">
                <HBox.margin>
                   <Insets bottom="30.0" right="10.0" />
                </HBox.margin>
             </Button>
-            <Button fx:id="exitButton" mnemonicParsing="false" onAction="#onExitButtonClick" text="%exception.button.exit">
+            <Button fx:id="exitButton" mnemonicParsing="false" onAction="#onExitButtonAction" text="%exception.button.exit">
                <HBox.margin>
                   <Insets bottom="30.0" right="50.0" />
                </HBox.margin>

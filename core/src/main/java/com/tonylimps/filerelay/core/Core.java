@@ -9,16 +9,13 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
+import java.net.*;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
-import java.util.Base64;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.*;
+import java.util.random.RandomGenerator;
 
 public class Core{
 
@@ -26,6 +23,9 @@ public class Core{
     private static final String ENCRYPT_ALGORITHM = "AES";
     private static final String AES_TRANSFORMATION = "AES/ECB/PKCS5Padding";
 
+	public static String getConfig(String key) {
+		return ResourceBundle.getBundle("config").getString(key);
+	}
     // 根据key密钥加密data字符串
     public static String encrypt(String data, String stringKey) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         byte[] key = stringKey.getBytes();
@@ -77,11 +77,34 @@ public class Core{
         return inetSocketAddress.getAddress().getHostAddress();
     }
     // 将参数解析为哈希表命令
-    public static String parseCommand(String... args){
+    public static String createCommand(String... args){
         HashMap<String,String> command = new HashMap<>();
         for(int k = 0,v = 0; v<args.length; v+=2,k+=2){
             command.put(args[k],args[v]);
         }
         return JSON.toJSONString(command);
     }
+	// 将字符串命令解析
+	public static HashMap<String, String> parseCommand(String command){
+		return JSON.parseObject(command,HashMap.class);
+	}
+    // 生成token
+    public static String createToken() throws Exception {
+        String random = hashEncrypt(String.valueOf(RandomGenerator.of("L128X128MixRandom").nextLong()));
+        return hashEncrypt(random);
+    }
+    // 命名重名设备
+    public static String rename(String name, Set<String> names){
+        int renameTimes = 1;
+        while(names.contains(name+" ("+renameTimes+")")){
+            renameTimes++;
+        }
+        return name+" ("+renameTimes+")";
+    }
+    // 获取IP地址
+    public static String getHostAddress() throws UnknownHostException {
+        InetAddress address = InetAddress.getLocalHost();
+        return address.getHostAddress();
+    }
+
 }

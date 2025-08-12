@@ -1,9 +1,9 @@
 package com.tonylimps.filerelay.core;
 
 import com.alibaba.fastjson2.annotation.JSONField;
-import com.tonylimps.filerelay.core.threads.CommandThread;
+import com.tonylimps.filerelay.core.threads.AuthorizedCommandThread;
 
-public class Device {
+public class AuthorizedDevice {
 
 	private String host;
 	private int port;
@@ -11,22 +11,18 @@ public class Device {
 	private String deviceName;
 
 	@JSONField(serialize = false)
-	private CommandThread commandThread;
+	private AuthorizedCommandThread authorizedCommandThread;
 	@JSONField(serialize = false)
 	private boolean online;
 
-	public Device(){
-
-	}
-
-	public Device(String host, int port, String remarkName, String deviceName) {
+	public AuthorizedDevice(String host, int port, String remarkName, String deviceName) {
 		this.host = host;
 		this.port = port;
 		this.remarkName = remarkName;
 		this.deviceName = deviceName;
 	}
 
-	public Device(String host, int port, String deviceName) {
+	public AuthorizedDevice(String host, int port, String deviceName) {
 		this.host = host;
 		this.port = port;
 		this.remarkName = deviceName;
@@ -65,12 +61,12 @@ public class Device {
 		this.deviceName = deviceName;
 	}
 
-	public CommandThread getCommandThread() {
-		return commandThread;
+	public AuthorizedCommandThread getCommandThread() {
+		return authorizedCommandThread;
 	}
 
-	public void setCommandThread(CommandThread commandThread) {
-		this.commandThread = commandThread;
+	public void setCommandThread(AuthorizedCommandThread authorizedCommandThread) {
+		this.authorizedCommandThread = authorizedCommandThread;
 	}
 
 	public boolean isOnline() {

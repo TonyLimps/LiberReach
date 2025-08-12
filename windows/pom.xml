@@ -11,7 +11,7 @@
 
     <parent>
         <groupId>com.tonylimps</groupId>
-        <artifactId>client</artifactId>
+        <artifactId>filerelay</artifactId>
         <version>1.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -49,6 +49,12 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.tonylimps.filerelay.core</groupId>
+            <artifactId>core</artifactId>
+            <version>1.0.0</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -66,7 +72,7 @@
                                 <option>javafx.controls,javafx.fxml</option>
                             </options>
                             <mainClass>
-                                com.tonylimps.filerelay.client.windows.Main
+                                com.tonylimps.filerelay.windows.Main
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>

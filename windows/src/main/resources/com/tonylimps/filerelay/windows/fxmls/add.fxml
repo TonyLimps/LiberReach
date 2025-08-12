@@ -8,11 +8,11 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="TOP_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+<VBox alignment="TOP_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tonylimps.filerelay.windows.controllers.AddController">
    <children>
       <HBox alignment="CENTER_LEFT" prefHeight="0.0" prefWidth="600.0">
          <children>
-            <Label text="%search.label.ip" />
+            <Label text="%add.label.ip" />
             <TextField fx:id="IPField" HBox.hgrow="ALWAYS">
                <HBox.margin>
                   <Insets left="20.0" />
@@ -25,7 +25,7 @@
       </HBox>
       <HBox alignment="CENTER_LEFT" prefHeight="23.0" prefWidth="497.0">
          <children>
-            <Label text="%search.label.port" />
+            <Label text="%add.label.port" />
             <TextField fx:id="portField" HBox.hgrow="ALWAYS">
                <HBox.margin>
                   <Insets left="20.0" />
@@ -38,8 +38,8 @@
       </HBox>
       <HBox alignment="CENTER_LEFT" prefHeight="23.0" prefWidth="497.0" VBox.vgrow="ALWAYS">
          <children>
-            <Label text="%search.label.token" />
-            <TextArea prefHeight="115.0" prefWidth="366.0" HBox.hgrow="ALWAYS">
+            <Label text="%add.label.token" />
+            <TextArea fx:id="tokenArea" prefHeight="115.0" prefWidth="366.0" HBox.hgrow="ALWAYS">
                <HBox.margin>
                   <Insets left="20.0" />
                </HBox.margin>
@@ -49,7 +49,7 @@
             <Insets left="50.0" right="50.0" top="20.0" />
          </VBox.margin>
       </HBox>
-      <Button fx:id="searchButton" mnemonicParsing="false" text="%search.button.add">
+      <Button fx:id="addButton" mnemonicParsing="false" text="%add.button.add">
          <VBox.margin>
             <Insets bottom="50.0" right="50.0" top="20.0" />
          </VBox.margin>

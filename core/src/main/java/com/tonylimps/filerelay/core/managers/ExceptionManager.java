@@ -1,4 +1,4 @@
-package com.tonylimps.filerelay.core;
+package com.tonylimps.filerelay.core.managers;
 
 public abstract class ExceptionManager {
     public abstract void throwException(Exception e);

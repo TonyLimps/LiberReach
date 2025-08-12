@@ -40,7 +40,10 @@
          </children>
       </HBox>
       <Label fx:id="tokenLabel" text="%settings.label.token" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
-      <TextArea fx:id="tokenArea" editable="false" prefHeight="200.0" prefWidth="200.0" promptText="token..." GridPane.columnIndex="1" GridPane.rowIndex="3" />
+      <TextArea fx:id="tokenArea" editable="false" prefHeight="200.0" prefWidth="200.0" promptText="token..." wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="3">
+         <GridPane.margin>
+            <Insets right="50.0" />
+         </GridPane.margin></TextArea>
       <Label fx:id="tokenTimeRemainingLabel" text="%settings.label.tokenTimeRemaining" GridPane.halignment="CENTER" GridPane.rowIndex="4" GridPane.valignment="CENTER" />
       <Label fx:id="timeRemainingLabel" text="time" GridPane.columnIndex="1" GridPane.rowIndex="4" />
       <Label fx:id="nameLabel" text="%settings.label.name" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
@@ -49,20 +52,20 @@
             <Insets right="50.0" />
          </GridPane.margin>
       </TextField>
-      <Label text="%settings.label.port" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
-      <TextField promptText="%settings.textField.port" GridPane.columnIndex="1" GridPane.rowIndex="5">
+      <Label fx:id="portLabel" text="%settings.label.port" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
+      <TextField fx:id="portField" promptText="%settings.textField.port" GridPane.columnIndex="1" GridPane.rowIndex="5">
          <GridPane.margin>
             <Insets right="50.0" />
          </GridPane.margin>
       </TextField>
       <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER">
          <children>
-            <Button mnemonicParsing="false" text="%settings.button.apply">
+            <Button fx:id="applyButton" mnemonicParsing="false" onAction="#onApplyButtonAction" text="%settings.button.apply">
                <HBox.margin>
                   <Insets right="30.0" />
                </HBox.margin>
             </Button>
-            <Button mnemonicParsing="false" text="%settings.button.cancel">
+            <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#onCancelButtonAction" text="%settings.button.cancel">
                <HBox.margin>
                   <Insets right="50.0" />
                </HBox.margin>
