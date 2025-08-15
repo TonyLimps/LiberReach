@@ -16,7 +16,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class HeartBeatThread extends Thread {
 
-	private final AtomicBoolean debug;
 	private final AtomicBoolean running;
 
 	private final Profile profile;
@@ -30,8 +29,7 @@ public class HeartBeatThread extends Thread {
 		AtomicBoolean running,
 		Profile profile,
 		Token token,
-		ConnectThread connectThread,
-		AtomicBoolean debug
+		ConnectThread connectThread
 	)
 	{
 		this.profile = profile;
@@ -40,7 +38,6 @@ public class HeartBeatThread extends Thread {
 		this.exceptionManager = exceptionManager;
 		this.heartBeatDelayMillis = Integer.parseInt(Core.getConfig("heartBeatDelayMillis"));
 		this.token = token;
-		this.debug = debug;
 	}
 
 	@Override
@@ -59,7 +56,6 @@ public class HeartBeatThread extends Thread {
 									   profile,
 									   running,
 									   token,
-									   debug,
 									   connectThread
 								   );
 								   commandThread.start();
@@ -73,8 +69,19 @@ public class HeartBeatThread extends Thread {
 				Thread.sleep(heartBeatDelayMillis);
 			}
 			catch (InterruptedException e) {
-				exceptionManager.throwException(e);
+
 			}
 		}
+	}
+
+	public void close(){
+		interrupt();
+		try{
+			join();
+		}
+		catch (InterruptedException e) {
+			Core.getLogger().info("Heartbeat thread interrupted.");
+		}
+		Core.getLogger().info("Heartbeat thread closed.");
 	}
 }

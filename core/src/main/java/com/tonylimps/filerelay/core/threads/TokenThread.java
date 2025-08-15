@@ -4,6 +4,7 @@ import com.tonylimps.filerelay.core.Core;
 import com.tonylimps.filerelay.core.Token;
 import com.tonylimps.filerelay.core.managers.ExceptionManager;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /*
@@ -13,10 +14,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TokenThread extends Thread {
 
+	private final AtomicBoolean running;
+
 	private final Token token;
 	private final ExceptionManager exceptionManager;
 	private final int flushDelaySeconds;
-	private final AtomicBoolean running;
 	private int timeRemaining;
 
 
@@ -46,10 +48,23 @@ public class TokenThread extends Thread {
 					timeRemaining -= 1;
 				}
 			}
-			catch (Exception e) {
+			catch(NoSuchAlgorithmException e){
 				exceptionManager.throwException(e);
+			}
+			catch (InterruptedException e) {
+
 			}
 		}
 	}
 
+	public void close(){
+		interrupt();
+		try{
+			join();
+		}
+		catch (InterruptedException e) {
+			Core.getLogger().info("Token thread interrupted.");
+		}
+		Core.getLogger().info("Token thread closed.");
+	}
 }

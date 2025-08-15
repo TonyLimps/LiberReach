@@ -1,8 +1,8 @@
 package com.tonylimps.filerelay.windows.managers;
 
 import com.tonylimps.filerelay.core.Core;
-import com.tonylimps.filerelay.core.managers.ExceptionManager;
 import com.tonylimps.filerelay.core.Profile;
+import com.tonylimps.filerelay.core.managers.ExceptionManager;
 import com.tonylimps.filerelay.core.managers.ResourceBundleManager;
 
 import java.io.FileInputStream;
@@ -56,16 +56,20 @@ public class WindowsResourceBundleManager extends ResourceBundleManager {
 
 			if (bundles.containsKey(locale)) {
 				// 如果支持配置文件中指定的语言包，就使用配置文件中的语言包
+				Core.getLogger().info("Loading resource bundle.");
 				bundle = bundles.get(locale);
 			}
 			else if (bundles.containsKey(Locale.getDefault())) {
 				// 否则使用用户设备的语言包
+				Core.getLogger().warn("Load failed, using the system language.");
 				bundle = bundles.get(Locale.getDefault());
 			}
 			else {
 				// 不支持当前使用的语言包就用默认
+				Core.getLogger().warn("Load failed, using the default language.");
 				bundle = bundles.get(Locale.forLanguageTag(Core.getConfig("defaultLocale")));
 			}
+			Core.getLogger().info("Loaded resource bundle.");
 		}
 		return bundle;
 	}

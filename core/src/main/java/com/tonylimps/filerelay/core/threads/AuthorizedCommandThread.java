@@ -1,10 +1,12 @@
 package com.tonylimps.filerelay.core.threads;
 
-import com.alibaba.fastjson2.JSON;
-import com.tonylimps.filerelay.core.*;
-import com.tonylimps.filerelay.core.managers.ExceptionManager;
+import com.tonylimps.filerelay.core.AuthorizedDevice;
+import com.tonylimps.filerelay.core.Core;
+import com.tonylimps.filerelay.core.Profile;
+import com.tonylimps.filerelay.core.Token;
 import com.tonylimps.filerelay.core.enums.CommandTypes;
 import com.tonylimps.filerelay.core.enums.RequestResults;
+import com.tonylimps.filerelay.core.managers.ExceptionManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,7 +25,6 @@ public class AuthorizedCommandThread extends CommandThread {
 								   Profile profile,
 								   AtomicBoolean running,
 								   Token token,
-								   AtomicBoolean debug,
 								   ConnectThread connectThread) {
 		try {
 			this.address = new InetSocketAddress(socket.getInetAddress(), socket.getPort());
@@ -34,7 +35,6 @@ public class AuthorizedCommandThread extends CommandThread {
 			this.exceptionManager = exceptionManager;
 			this.token = token;
 			this.connectThread = connectThread;
-			this.debug = debug;
 		}
 		catch (IOException e) {
 			exceptionManager.throwException(e);
@@ -42,9 +42,7 @@ public class AuthorizedCommandThread extends CommandThread {
 	}
 	@Override
 	protected void exec(HashMap<String, String> command) throws IOException {
-		if(debug.get()) {
-			System.out.println("Received from "+address.toString()+" :\n" + command);
-		}
+		Core.getLogger().info("Received from "+address.toString()+" :\n" + command);
 		switch (command.get("type")) {
 			case CommandTypes.ADD -> {
 				// 添加设备请求
@@ -58,6 +56,7 @@ public class AuthorizedCommandThread extends CommandThread {
 						"port", profile.getPort().toString(),
 						"content", RequestResults.SUCCESS
 					));
+					profile.addAuthorizedDevice(new AuthorizedDevice(address, command.get("name")));
 				}
 				else {
 					// 如果令牌错误，回应拒绝命令
@@ -81,9 +80,7 @@ public class AuthorizedCommandThread extends CommandThread {
 	}
 
 	public void answer(String command) {
-		if(debug.get()) {
-			System.out.println("Answered to "+address.toString()+" :\n" + command);
-		}
+		Core.getLogger().info("Answered to "+address.toString()+" :\n" + command);
 		out.println(command);
 		connectThread.getAuthorizedDevices().get(address).setOnline(!out.checkError());
 	}

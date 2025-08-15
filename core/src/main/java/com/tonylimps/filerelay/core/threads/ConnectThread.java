@@ -21,10 +21,10 @@ public class ConnectThread extends Thread {
 
 	private final AtomicBoolean running;
 
-	private final AtomicBoolean debug;
 	private final ExceptionManager exceptionManager;
 	private final Profile profile;
 	private final Token token;
+	private ServerSocket serverSocket;
 
 	private final HashMap<InetSocketAddress, ViewableDevice> viewableDevices;
 	private final HashMap<InetSocketAddress, AuthorizedDevice> authorizedDevices;
@@ -32,23 +32,22 @@ public class ConnectThread extends Thread {
 	public ConnectThread(ExceptionManager exceptionManager,
 						 AtomicBoolean running,
 						 Profile profile,
-						 Token token,
-						 AtomicBoolean debug) {
+						 Token token) {
 		this.exceptionManager = exceptionManager;
 		this.profile = profile;
 		this.running = running;
 		this.token = token;
 		this.viewableDevices = profile.getViewableDevices();
 		this.authorizedDevices = profile.getAuthorizedDevices();
-		this.debug = debug;
 	}
 
 	@Override
 	public void run() {
-		try(ServerSocket serverSocket = new ServerSocket(profile.getPort())) {
+		try{
+			serverSocket = new ServerSocket(profile.getPort());
 			while (running.get()) {
 				Socket socket = serverSocket.accept();
-				AuthorizedCommandThread authorizedCommandThread = new AuthorizedCommandThread(socket, exceptionManager, profile, running, token, debug, this);
+				AuthorizedCommandThread authorizedCommandThread = new AuthorizedCommandThread(socket, exceptionManager, profile, running, token, this);
 				authorizedCommandThread.start();
 			}
 		}
@@ -65,11 +64,26 @@ public class ConnectThread extends Thread {
 		return authorizedDevices;
 	}
 
-	public AuthorizedCommandThread getCommandThreadFromAuthorized(InetSocketAddress address){
-		return authorizedDevices.get(address).getCommandThread();
-	}
+	public void close() {
+		try{
+			serverSocket.close();
+			authorizedDevices.values().stream()
+							 .map(AuthorizedDevice::getCommandThread)
+							 .forEach(CommandThread::close);
+			viewableDevices.values().stream()
+						   .map(ViewableDevice::getCommandThread)
+						   .forEach(CommandThread::close);
+		}
+		catch (IOException e) {
 
-	public ViewableCommandThread getCommandThreadFromViewable(InetSocketAddress address) {
-		return viewableDevices.get(address).getCommandThread();
+		}
+		interrupt();
+		try{
+			join();
+		}
+		catch (InterruptedException e) {
+			Core.getLogger().info("Connect thread interrupted.");
+		}
+		Core.getLogger().info("Connect thread closed.");
 	}
 }

@@ -3,10 +3,11 @@ package com.tonylimps.filerelay.core;
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.tonylimps.filerelay.core.threads.AuthorizedCommandThread;
 
+import java.net.InetSocketAddress;
+
 public class AuthorizedDevice {
 
-	private String host;
-	private int port;
+	private InetSocketAddress address;
 	private String remarkName;
 	private String deviceName;
 
@@ -15,34 +16,24 @@ public class AuthorizedDevice {
 	@JSONField(serialize = false)
 	private boolean online;
 
-	public AuthorizedDevice(String host, int port, String remarkName, String deviceName) {
-		this.host = host;
-		this.port = port;
+	public AuthorizedDevice(InetSocketAddress address, String remarkName, String deviceName) {
+		this.address = address;
 		this.remarkName = remarkName;
 		this.deviceName = deviceName;
 	}
 
-	public AuthorizedDevice(String host, int port, String deviceName) {
-		this.host = host;
-		this.port = port;
+	public AuthorizedDevice(InetSocketAddress address, String deviceName) {
+		this.address = address;
 		this.remarkName = deviceName;
 		this.deviceName = deviceName;
 	}
 
 	public String getHost() {
-		return host;
-	}
-
-	public void setHost(String host) {
-		this.host = host;
+		return address.getAddress().getHostName();
 	}
 
 	public int getPort() {
-		return port;
-	}
-
-	public void setPort(int port) {
-		this.port = port;
+		return address.getPort();
 	}
 
 	public String getRemarkName() {

@@ -58,14 +58,18 @@ public class WindowsProfileManager {
 		if (!profile.exists()) {
 			// 如果配置文件不存在就新建配置文件
 			createNewProfile();
+			Core.getLogger().info("Created new profile.");
 		}
 		try (FileInputStream fileInputStream = new FileInputStream(profile)) {
 			// 尝试读取配置文件
 			String encryptedProfileString = new String(fileInputStream.readAllBytes());
+			Core.getLogger().info("Read profile.");
 			//使用本机的机器码解密
 			String decryptedProfileString = Core.decrypt(encryptedProfileString, UUID);
+			Core.getLogger().info("Decrypt profile.");
 			// 解析配置
 			this.profile = JSON.parseObject(decryptedProfileString, Profile.class);
+			Core.getLogger().info("Parsed profile.");
 		}
 		catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException |
 			   BadPaddingException e) {

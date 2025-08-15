@@ -1,6 +1,7 @@
 package com.tonylimps.filerelay.core.threads;
 
 import com.alibaba.fastjson2.JSON;
+import com.tonylimps.filerelay.core.Core;
 import com.tonylimps.filerelay.core.Profile;
 import com.tonylimps.filerelay.core.Token;
 import com.tonylimps.filerelay.core.managers.ExceptionManager;
@@ -15,7 +16,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class CommandThread extends Thread{
 
 	protected AtomicBoolean running;
-	protected AtomicBoolean debug;
 
 	protected Profile profile;
 	protected BufferedReader in;
@@ -44,4 +44,15 @@ public class CommandThread extends Thread{
 
 	protected void exec(HashMap<String, String> command) throws IOException {}
 
+
+	public void close(){
+		interrupt();
+		try{
+			join();
+		}
+		catch (InterruptedException e) {
+			Core.getLogger().info("Command thread "+getName()+" interrupted.");
+		}
+		Core.getLogger().info("Command thread "+getName()+" closed.");
+	}
 }

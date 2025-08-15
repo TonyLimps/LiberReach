@@ -1,6 +1,8 @@
 package com.tonylimps.filerelay.core;
 
 import com.alibaba.fastjson2.JSON;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -13,11 +15,14 @@ import java.net.*;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.random.RandomGenerator;
 
 public class Core{
+
+	private static final Logger logger = LogManager.getLogger(Core.class);
 
     private static final String HASH_ALGORITHM = "SHA3-256";
     private static final String ENCRYPT_ALGORITHM = "AES";
@@ -44,7 +49,7 @@ public class Core{
         return new String(cipher.doFinal(result));
     }
     // 哈希加密
-    public static String hashEncrypt(String data) throws Exception {
+    public static String hashEncrypt(String data) throws NoSuchAlgorithmException {
         MessageDigest sha3Digest = MessageDigest.getInstance(HASH_ALGORITHM);
         byte[] hashBytes = sha3Digest.digest(data.getBytes());
         StringBuilder hexString = new StringBuilder();
@@ -89,8 +94,8 @@ public class Core{
 		return JSON.parseObject(command,HashMap.class);
 	}
     // 生成token
-    public static String createToken() throws Exception {
-        String random = hashEncrypt(String.valueOf(RandomGenerator.of("L128X128MixRandom").nextLong()));
+    public static String createToken() throws NoSuchAlgorithmException {
+        String random = hashEncrypt(String.valueOf(new SecureRandom().nextLong()));
         return hashEncrypt(random);
     }
     // 命名重名设备
@@ -106,5 +111,9 @@ public class Core{
         InetAddress address = InetAddress.getLocalHost();
         return address.getHostAddress();
     }
+
+	public static Logger getLogger() {
+		return logger;
+	}
 
 }

@@ -3,7 +3,6 @@ package com.tonylimps.filerelay.windows.controllers;
 import com.tonylimps.filerelay.core.Profile;
 import com.tonylimps.filerelay.windows.Main;
 import com.tonylimps.filerelay.windows.managers.WindowManager;
-import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 

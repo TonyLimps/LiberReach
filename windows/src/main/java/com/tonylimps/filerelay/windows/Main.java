@@ -4,24 +4,20 @@ import com.tonylimps.filerelay.core.Core;
 import com.tonylimps.filerelay.core.threads.ConnectThread;
 import com.tonylimps.filerelay.core.threads.HeartBeatThread;
 import com.tonylimps.filerelay.core.threads.TokenThread;
-import com.tonylimps.filerelay.windows.threads.UpdateThread;
 import com.tonylimps.filerelay.windows.managers.WindowManager;
 import com.tonylimps.filerelay.windows.managers.WindowsExceptionManager;
 import com.tonylimps.filerelay.windows.managers.WindowsProfileManager;
 import com.tonylimps.filerelay.windows.managers.WindowsResourceBundleManager;
+import com.tonylimps.filerelay.windows.threads.UpdateThread;
 import javafx.application.Application;
 import javafx.stage.Stage;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Main extends Application{
 
-	private static AtomicBoolean DEBUG;
 	private static AtomicBoolean running;
-	private static final Logger logger = LogManager.getLogger(Main.class);
 
 	// managers
 	private static WindowsProfileManager profileManager;
@@ -35,25 +31,24 @@ public class Main extends Application{
 	private static HeartBeatThread heartBeatThread;
 
 	public static void main(String[] args) {
+		Core.getLogger().info("Program started.");
 		running = new AtomicBoolean(true);
-		DEBUG = new AtomicBoolean(Boolean.parseBoolean(Core.getConfig("debug")));
-		if (args.length != 0) {
-			if (args[0].equals("--debug")) {
-				DEBUG = new AtomicBoolean(true);
-			}
-		}
 		exceptionManager = new WindowsExceptionManager();
 		profileManager = new WindowsProfileManager(exceptionManager);
 		bundleManager = new WindowsResourceBundleManager(exceptionManager, profileManager.getProfile());
 
 		tokenThread = new TokenThread(exceptionManager, running);
 		tokenThread.start();
+		Core.getLogger().info("Token thread started.");
 		updateThread = new UpdateThread(exceptionManager, running);
 		updateThread.start();
-		connectThread = new ConnectThread(exceptionManager, running, profileManager.getProfile(), tokenThread.getToken(), DEBUG);
+		Core.getLogger().info("UI update thread started.");
+		connectThread = new ConnectThread(exceptionManager, running, profileManager.getProfile(), tokenThread.getToken());
 		connectThread.start();
-		heartBeatThread = new HeartBeatThread(exceptionManager, running, profileManager.getProfile(), tokenThread.getToken(), connectThread, DEBUG);
+		Core.getLogger().info("Connect thread started.");
+		heartBeatThread = new HeartBeatThread(exceptionManager, running, profileManager.getProfile(), tokenThread.getToken(), connectThread);
 		heartBeatThread.start();
+		Core.getLogger().info("Heartbeat thread started.");
 
 		launch(args);
 	}
@@ -65,39 +60,24 @@ public class Main extends Application{
 			WindowManager.initWindow("settings", "/com/tonylimps/filerelay/windows/fxmls/settings.fxml", bundle);
 			WindowManager.initWindow("main", "/com/tonylimps/filerelay/windows/fxmls/main.fxml", bundle);
 			WindowManager.initWindow("add", "/com/tonylimps/filerelay/windows/fxmls/add.fxml", bundle);
-			WindowManager.show("main");
 			WindowManager.getStage("main").setTitle(bundle.getString("main.title"));
 			WindowManager.getStage("main").setOnCloseRequest( event -> exit(0));
+			WindowManager.show("main");
+			Core.getLogger().info("Application started.");
 		}
 		catch (Exception e) {
+			Core.getLogger().fatal("Load UI content failed.");
 			exceptionManager.throwException(e);
 		}
 	}
 
 	private static void exit(int code){
 		running.set(false);
-		tokenThread.interrupt();
-		connectThread.interrupt();
-		heartBeatThread.interrupt();
-		try {
-			tokenThread.join();
-			connectThread.join();
-			heartBeatThread.join();
-		}
-		catch (InterruptedException e) {
-			exceptionManager.throwException(e);
-		}
+		tokenThread.close();
+		connectThread.close();
+		heartBeatThread.close();
+		Core.getLogger().info("Application exited with code "+code+".");
 		System.exit(code);
-	}
-
-
-
-	public static boolean isRunning() {
-		return running.get();
-	}
-
-	public static boolean isDebug() {
-		return DEBUG.get();
 	}
 
 	public static WindowsProfileManager getProfileManager() {
@@ -119,4 +99,5 @@ public class Main extends Application{
 	public static ConnectThread getConnectThread() {
 		return connectThread;
 	}
+
 }

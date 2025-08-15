@@ -10,7 +10,10 @@
     </parent>
 
     <groupId>com.tonylimps.filerelay.core</groupId>
+    <version>${filerelay.version}</version>
     <artifactId>core</artifactId>
+    <name>core</name>
+    <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

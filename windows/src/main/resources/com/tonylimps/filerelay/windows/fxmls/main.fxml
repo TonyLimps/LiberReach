@@ -65,25 +65,43 @@
             </SplitPane>
             <SplitPane dividerPositions="0.9360313315926893" orientation="VERTICAL" prefHeight="200.0" prefWidth="1066.0">
                <items>
-                  <VBox prefHeight="200.0" prefWidth="100.0">
-                     <children>
-                        <HBox maxHeight="23.0" prefHeight="100.0" prefWidth="9999.0">
+                  <SplitPane dividerPositions="0.8391915641476274" prefHeight="761.0" prefWidth="1138.0">
+                    <items>
+                        <VBox prefHeight="200.0" prefWidth="100.0">
                            <children>
-                              <Button fx:id="backButton" mnemonicParsing="false" text="%main.button.back" />
-                              <TextField fx:id="pathField" promptText="%main.textField.path" HBox.hgrow="ALWAYS" />
-                              <Button fx:id="flushButton" mnemonicParsing="false" text="%main.button.flush" />
-                              <TextField fx:id="searchField" promptText="%main.textField.search" />
-                              <Button fx:id="searchButton" mnemonicParsing="false" text="%main.button.search" />
+                              <HBox maxHeight="23.0" prefHeight="100.0" prefWidth="9999.0">
+                                 <children>
+                                    <Button fx:id="backButton" mnemonicParsing="false" text="%main.button.back" />
+                                    <TextField fx:id="pathField" promptText="%main.textField.path" HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="flushButton" mnemonicParsing="false" text="%main.button.flush" />
+                                 </children>
+                              </HBox>
+                              <HBox prefHeight="100.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+                                 <children>
+                                    <ListView fx:id="fileList" HBox.hgrow="ALWAYS" />
+                                    <ScrollBar orientation="VERTICAL" HBox.hgrow="NEVER" />
+                                 </children>
+                              </HBox>
                            </children>
-                        </HBox>
-                        <HBox prefHeight="100.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+                        </VBox>
+                        <VBox prefHeight="200.0" prefWidth="100.0">
                            <children>
-                              <ListView fx:id="fileList" minWidth="140.0" HBox.hgrow="ALWAYS" />
-                              <ScrollBar orientation="VERTICAL" HBox.hgrow="NEVER" />
+                              <HBox>
+                                 <children>
+                                    <TextField fx:id="searchField" promptText="%main.textField.search" HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="searchButton" mnemonicParsing="false" text="%main.button.search" />
+                                 </children>
+                              </HBox>
+                              <HBox prefHeight="100.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+                                 <children>
+                                    <ListView HBox.hgrow="ALWAYS" />
+                                    <ScrollBar orientation="VERTICAL" />
+                                 </children>
+                              </HBox>
                            </children>
-                        </HBox>
-                     </children>
-                  </VBox>
+                        </VBox>
+                    </items>
+                  </SplitPane>
                   <VBox>
                      <children>
                         <Button fx:id="downloadButton" mnemonicParsing="false" text="%main.button.download" />

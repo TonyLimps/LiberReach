@@ -1,7 +1,6 @@
 package com.tonylimps.filerelay.core;
 
 import com.alibaba.fastjson2.annotation.JSONField;
-import com.tonylimps.filerelay.core.threads.AuthorizedCommandThread;
 import com.tonylimps.filerelay.core.threads.ViewableCommandThread;
 
 public class ViewableDevice {

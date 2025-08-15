@@ -16,6 +16,9 @@
     </modules>
 
     <properties>
+        <filerelay.version>1.0.0</filerelay.version>
+        <filerelay.windows.version>1.0.0</filerelay.windows.version>
+
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
@@ -24,7 +27,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <fastjson2.version>2.0.53</fastjson2.version>
-        <log4j-api.version>2.20.0</log4j-api.version>
+        <log4j-api.version>2.23.1</log4j-api.version>
+        <log4j-core.version>2.23.1</log4j-core.version>
         <junit.version>3.8.1</junit.version>
     </properties>
 
@@ -33,17 +37,25 @@
             <groupId>com.alibaba.fastjson2</groupId>
             <artifactId>fastjson2</artifactId>
             <version>${fastjson2.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
             <version>${log4j-api.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j-core.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
-            <scope>test</scope>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
