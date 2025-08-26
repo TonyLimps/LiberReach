@@ -3,6 +3,8 @@ package com.tonylimps.filerelay.windows.managers;
 import com.alibaba.fastjson2.JSON;
 import com.tonylimps.filerelay.core.Core;
 import com.tonylimps.filerelay.core.Profile;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -21,6 +23,7 @@ import java.util.Scanner;
 
 public class WindowsProfileManager {
 
+	private final Logger logger = LogManager.getLogger(this.getClass());
 	private final WindowsExceptionManager exceptionManager;
 	private final String UUID;
 	private Profile profile;
@@ -58,18 +61,18 @@ public class WindowsProfileManager {
 		if (!profile.exists()) {
 			// 如果配置文件不存在就新建配置文件
 			createNewProfile();
-			Core.getLogger().info("Created new profile.");
+			logger.info("Created new profile.");
 		}
 		try (FileInputStream fileInputStream = new FileInputStream(profile)) {
 			// 尝试读取配置文件
 			String encryptedProfileString = new String(fileInputStream.readAllBytes());
-			Core.getLogger().info("Read profile.");
+			logger.info("Read profile.");
 			//使用本机的机器码解密
 			String decryptedProfileString = Core.decrypt(encryptedProfileString, UUID);
-			Core.getLogger().info("Decrypt profile.");
+			logger.info("Decrypt profile.");
 			// 解析配置
 			this.profile = JSON.parseObject(decryptedProfileString, Profile.class);
-			Core.getLogger().info("Parsed profile.");
+			logger.info("Parsed profile.");
 		}
 		catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException |
 			   BadPaddingException e) {
@@ -77,7 +80,8 @@ public class WindowsProfileManager {
 			createNewProfile();
 		}
 		catch (Exception e) {
-			exceptionManager.throwException(e);
+logger.error(e);
+exceptionManager.throwException(e);
 		}
 	}
 
@@ -96,7 +100,8 @@ public class WindowsProfileManager {
 			Files.write(path, encryptedBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 		}
 		catch (Exception e) {
-			exceptionManager.throwException(e);
+logger.error(e);
+exceptionManager.throwException(e);
 		}
 	}
 
@@ -108,7 +113,8 @@ public class WindowsProfileManager {
 			Files.write(path, encryptedBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 		}
 		catch (Exception e) {
-			exceptionManager.throwException(e);
+logger.error(e);
+exceptionManager.throwException(e);
 		}
 	}
 

@@ -1,6 +1,5 @@
 package com.tonylimps.filerelay.windows;
 
-import com.tonylimps.filerelay.core.Core;
 import com.tonylimps.filerelay.core.threads.ConnectThread;
 import com.tonylimps.filerelay.core.threads.HeartBeatThread;
 import com.tonylimps.filerelay.core.threads.TokenThread;
@@ -8,9 +7,11 @@ import com.tonylimps.filerelay.windows.managers.WindowManager;
 import com.tonylimps.filerelay.windows.managers.WindowsExceptionManager;
 import com.tonylimps.filerelay.windows.managers.WindowsProfileManager;
 import com.tonylimps.filerelay.windows.managers.WindowsResourceBundleManager;
-import com.tonylimps.filerelay.windows.threads.UpdateThread;
+import com.tonylimps.filerelay.windows.threads.WindowsUpdateThread;
 import javafx.application.Application;
 import javafx.stage.Stage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -18,6 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Main extends Application{
 
 	private static AtomicBoolean running;
+	private static final Logger logger = LogManager.getLogger(Main.class);
 
 	// managers
 	private static WindowsProfileManager profileManager;
@@ -26,29 +28,29 @@ public class Main extends Application{
 
 	// threads
 	private static TokenThread tokenThread;
-	private static UpdateThread updateThread;
+	private static WindowsUpdateThread updateThread;
 	private static ConnectThread connectThread;
 	private static HeartBeatThread heartBeatThread;
 
 	public static void main(String[] args) {
-		Core.getLogger().info("Program started.");
+		logger.info("Program started.");
 		running = new AtomicBoolean(true);
 		exceptionManager = new WindowsExceptionManager();
 		profileManager = new WindowsProfileManager(exceptionManager);
 		bundleManager = new WindowsResourceBundleManager(exceptionManager, profileManager.getProfile());
 
-		tokenThread = new TokenThread(exceptionManager, running);
-		tokenThread.start();
-		Core.getLogger().info("Token thread started.");
-		updateThread = new UpdateThread(exceptionManager, running);
+		updateThread = new WindowsUpdateThread(exceptionManager, running);
 		updateThread.start();
-		Core.getLogger().info("UI update thread started.");
+		logger.info("UI update thread started.");
+		tokenThread = new TokenThread(exceptionManager, running, updateThread);
+		tokenThread.start();
+		logger.info("Token thread started.");
 		connectThread = new ConnectThread(exceptionManager, running, profileManager.getProfile(), tokenThread.getToken());
 		connectThread.start();
-		Core.getLogger().info("Connect thread started.");
+		logger.info("Connect thread started.");
 		heartBeatThread = new HeartBeatThread(exceptionManager, running, profileManager.getProfile(), tokenThread.getToken(), connectThread);
 		heartBeatThread.start();
-		Core.getLogger().info("Heartbeat thread started.");
+		logger.info("Heartbeat thread started.");
 
 		launch(args);
 	}
@@ -57,26 +59,25 @@ public class Main extends Application{
 	public void start(Stage primaryStage) {
 		try {
 			ResourceBundle bundle = bundleManager.getBundle();
-			WindowManager.initWindow("settings", "/com/tonylimps/filerelay/windows/fxmls/settings.fxml", bundle);
-			WindowManager.initWindow("main", "/com/tonylimps/filerelay/windows/fxmls/main.fxml", bundle);
-			WindowManager.initWindow("add", "/com/tonylimps/filerelay/windows/fxmls/add.fxml", bundle);
-			WindowManager.getStage("main").setTitle(bundle.getString("main.title"));
-			WindowManager.getStage("main").setOnCloseRequest( event -> exit(0));
+			WindowManager.initWindow("settings", "/fxmls/settings.fxml", bundle);
+			WindowManager.initWindow("main", "/fxmls/main.fxml", bundle);
+			WindowManager.initWindow("add", "/fxmls/add.fxml", bundle);
 			WindowManager.show("main");
-			Core.getLogger().info("Application started.");
+			logger.info("Application started.");
 		}
 		catch (Exception e) {
-			Core.getLogger().fatal("Load UI content failed.");
+			logger.fatal("Load UI content failed.");
+			logger.error(e);
 			exceptionManager.throwException(e);
 		}
 	}
 
-	private static void exit(int code){
+	public static void exit(int code){
 		running.set(false);
 		tokenThread.close();
 		connectThread.close();
 		heartBeatThread.close();
-		Core.getLogger().info("Application exited with code "+code+".");
+		logger.info("Application exited with code "+code+".");
 		System.exit(code);
 	}
 
@@ -101,3 +102,4 @@ public class Main extends Application{
 	}
 
 }
+

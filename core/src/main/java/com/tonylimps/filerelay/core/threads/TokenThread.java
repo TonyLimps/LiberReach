@@ -3,6 +3,8 @@ package com.tonylimps.filerelay.core.threads;
 import com.tonylimps.filerelay.core.Core;
 import com.tonylimps.filerelay.core.Token;
 import com.tonylimps.filerelay.core.managers.ExceptionManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -14,17 +16,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TokenThread extends Thread {
 
+	private final Logger logger = LogManager.getLogger(this.getClass());
 	private final AtomicBoolean running;
 
 	private final Token token;
 	private final ExceptionManager exceptionManager;
+	private final UpdateThread updateThread;
 	private final int flushDelaySeconds;
 	private int timeRemaining;
 
 
-	public TokenThread(ExceptionManager exceptionManager, AtomicBoolean running) {
+	public TokenThread(ExceptionManager exceptionManager, AtomicBoolean running, UpdateThread updateThread) {
 		this.exceptionManager = exceptionManager;
 		this.running = running;
+		this.updateThread = updateThread;
 		flushDelaySeconds = Integer.parseInt(Core.getConfig("tokenFlushDelaySeconds"));
 		token = new Token();
 	}
@@ -43,16 +48,18 @@ public class TokenThread extends Thread {
 			try {
 				token.flush();
 				timeRemaining = flushDelaySeconds;
+				updateThread.setNeedToFlushToken(true);
 				for (int t = 0; t < flushDelaySeconds; t++) {
 					Thread.sleep(1000);
 					timeRemaining -= 1;
 				}
 			}
 			catch(NoSuchAlgorithmException e){
+				logger.error(e);
 				exceptionManager.throwException(e);
 			}
 			catch (InterruptedException e) {
-
+				logger.info("Token thread interrupted.");
 			}
 		}
 	}
@@ -63,8 +70,8 @@ public class TokenThread extends Thread {
 			join();
 		}
 		catch (InterruptedException e) {
-			Core.getLogger().info("Token thread interrupted.");
+			logger.info("Token thread interrupted.");
 		}
-		Core.getLogger().info("Token thread closed.");
+		logger.info("Token thread closed.");
 	}
 }

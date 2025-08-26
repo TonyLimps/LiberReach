@@ -70,8 +70,6 @@ public class Profile {
 											 .map(ViewableDevice::getRemarkName)
 											 .collect(Collectors.toSet());
 		device.setRemarkName(Core.rename(name,names));
-		String host = device.getHost();
-		int port = device.getPort();
-		viewableDevices.put(new InetSocketAddress(host,port), device);
+		viewableDevices.put(device.getAddress(), device);
 	}
 }

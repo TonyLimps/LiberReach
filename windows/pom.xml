@@ -41,6 +41,12 @@
             <version>${filerelay.version}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.tonylimps.filerelay.core</groupId>
+            <artifactId>core</artifactId>
+            <version>1.0.0</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -49,12 +55,12 @@
                 <directory>src/main/resources</directory>
             </resource>
             <resource>
-                <directory>${project.basedir}/../LanguageBundles</directory>
+                <directory>../CustomResources</directory>
                 <includes>
                     <include>**/*</include>
                 </includes>
                 <filtering>false</filtering>
-                <targetPath>LanguageBundles</targetPath>
+                <targetPath>CustomResources</targetPath>
             </resource>
         </resources>
         <plugins>

@@ -1,10 +1,11 @@
 package com.tonylimps.filerelay.core.threads;
 
 import com.alibaba.fastjson2.JSON;
-import com.tonylimps.filerelay.core.Core;
 import com.tonylimps.filerelay.core.Profile;
 import com.tonylimps.filerelay.core.Token;
 import com.tonylimps.filerelay.core.managers.ExceptionManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CommandThread extends Thread{
 
+	private final Logger logger = LogManager.getLogger(this.getClass());
 	protected AtomicBoolean running;
 
 	protected Profile profile;
@@ -37,6 +39,7 @@ public class CommandThread extends Thread{
 				exec(command);
 			}
 			catch (IOException e) {
+				logger.error(e);
 				exceptionManager.throwException(e);
 			}
 		}
@@ -51,8 +54,8 @@ public class CommandThread extends Thread{
 			join();
 		}
 		catch (InterruptedException e) {
-			Core.getLogger().info("Command thread "+getName()+" interrupted.");
+			logger.info("Command thread "+getName()+" interrupted.");
 		}
-		Core.getLogger().info("Command thread "+getName()+" closed.");
+		logger.info("Command thread "+getName()+" closed.");
 	}
 }

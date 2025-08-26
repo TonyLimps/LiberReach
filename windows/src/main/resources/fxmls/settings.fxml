@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+
 <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tonylimps.filerelay.windows.controllers.SettingsController">
   <columnConstraints>
     <ColumnConstraints hgrow="SOMETIMES" maxWidth="295.0" minWidth="10.0" prefWidth="188.0" />
@@ -19,7 +27,7 @@
   </rowConstraints>
    <children>
       <Label fx:id="languageLabel" text="%settings.label.language" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
-      <ComboBox fx:id="languageComboBox" onAction="#onLanguageComboBoxAction" onMouseClicked="#flushSupportedLanguages" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
+      <ComboBox fx:id="languageComboBox" onAction="#onLanguageComboBoxAction" onMouseClicked="#onLanguageComboBoxClick" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
       <Label fx:id="downloadPathLabel" text="%settings.label.downloadPath" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
       <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
          <children>
@@ -52,7 +60,7 @@
       </TextField>
       <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER">
          <children>
-            <Button fx:id="applyButton" mnemonicParsing="false" onAction="#onApplyButtonAction" text="%settings.button.apply">
+            <Button fx:id="applyButton" mnemonicParsing="false" onAction="#apply" text="%settings.button.apply">
                <HBox.margin>
                   <Insets right="30.0" />
                </HBox.margin>

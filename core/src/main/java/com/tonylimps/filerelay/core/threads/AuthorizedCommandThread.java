@@ -7,6 +7,8 @@ import com.tonylimps.filerelay.core.Token;
 import com.tonylimps.filerelay.core.enums.CommandTypes;
 import com.tonylimps.filerelay.core.enums.RequestResults;
 import com.tonylimps.filerelay.core.managers.ExceptionManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,7 +20,12 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/*
+ * 负责与授权设备通信的命令线程
+ */
 public class AuthorizedCommandThread extends CommandThread {
+
+	private final Logger logger = LogManager.getLogger(this.getClass());
 
 	public AuthorizedCommandThread(Socket socket,
 								   ExceptionManager exceptionManager,
@@ -37,12 +44,13 @@ public class AuthorizedCommandThread extends CommandThread {
 			this.connectThread = connectThread;
 		}
 		catch (IOException e) {
-			exceptionManager.throwException(e);
+				logger.error(e);
+				exceptionManager.throwException(e);
 		}
 	}
 	@Override
 	protected void exec(HashMap<String, String> command) throws IOException {
-		Core.getLogger().info("Received from "+address.toString()+" :\n" + command);
+		logger.info("Received from "+address+" :\n" + command);
 		switch (command.get("type")) {
 			case CommandTypes.ADD -> {
 				// 添加设备请求
@@ -70,19 +78,21 @@ public class AuthorizedCommandThread extends CommandThread {
 				}
 			}
 			case CommandTypes.HEARTBEAT -> {
-				AuthorizedDevice device = connectThread.getAuthorizedDevices().get(address);
-				if(Objects.nonNull(device)) {
-					device.setOnline(true);
-					device.setCommandThread(this);
+				AuthorizedDevice device = profile.getAuthorizedDevices().get(address);
+				if(Objects.nonNull(device)){
+					answer(Core.createCommand(
+						"type", CommandTypes.ANSWER,
+						"answerType", CommandTypes.HEARTBEAT,
+						"isAuthorized", String.valueOf(device.isAuthorized())
+					));
 				}
 			}
 		}
 	}
 
 	public void answer(String command) {
-		Core.getLogger().info("Answered to "+address.toString()+" :\n" + command);
+		logger.info("Answered to "+address.toString()+" :\n" + command);
 		out.println(command);
-		connectThread.getAuthorizedDevices().get(address).setOnline(!out.checkError());
 	}
 
 }

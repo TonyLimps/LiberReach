@@ -5,17 +5,21 @@ import com.tonylimps.filerelay.core.Profile;
 import com.tonylimps.filerelay.core.Token;
 import com.tonylimps.filerelay.core.enums.CommandTypes;
 import com.tonylimps.filerelay.core.managers.ExceptionManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /*
- * 这是心跳线程，每隔一段时间向可查看设备发送心跳命令
- * 用于确保socket正常连接，并更新设备的在线状态
+ * 这是心跳线程，每隔一段时间向查看设备发送心跳命令
+ * 用于确保socket正常连接，并更新设备的在线状态和授权状态
  */
 public class HeartBeatThread extends Thread {
 
+	private final Logger logger = LogManager.getLogger(this.getClass());
 	private final AtomicBoolean running;
 
 	private final Profile profile;
@@ -30,8 +34,7 @@ public class HeartBeatThread extends Thread {
 		Profile profile,
 		Token token,
 		ConnectThread connectThread
-	)
-	{
+	){
 		this.profile = profile;
 		this.running = running;
 		this.connectThread = connectThread;
@@ -45,13 +48,14 @@ public class HeartBeatThread extends Thread {
 		while (running.get()) {
 			try {
 				// 每隔一段时间遍历可查看设备，发送心跳命令，send方法会自动更新在线状态
-				profile.getViewableDevices().values().stream()
+				profile.getViewableDevices().values()
 					   .forEach(device -> {
 						   try {
 							   ViewableCommandThread commandThread = device.getCommandThread();
 							   if (Objects.isNull(commandThread)) {
+								   InetSocketAddress address = device.getAddress();
 								   commandThread = new ViewableCommandThread(
-									   new Socket(device.getHost(), device.getPort()),
+									   new Socket(address.getAddress(), address.getPort()),
 									   exceptionManager,
 									   profile,
 									   running,
@@ -63,13 +67,14 @@ public class HeartBeatThread extends Thread {
 							   commandThread.send(Core.createCommand("type", CommandTypes.HEARTBEAT));
 						   }
 						   catch (Exception e) {
-							   exceptionManager.throwException(e);
+								logger.error(e);
+								exceptionManager.throwException(e);
 						   }
 					   });
 				Thread.sleep(heartBeatDelayMillis);
 			}
 			catch (InterruptedException e) {
-
+				logger.info("Heartbeat thread interrupted.");
 			}
 		}
 	}
@@ -80,8 +85,8 @@ public class HeartBeatThread extends Thread {
 			join();
 		}
 		catch (InterruptedException e) {
-			Core.getLogger().info("Heartbeat thread interrupted.");
+			logger.info("Heartbeat thread interrupted.");
 		}
-		Core.getLogger().info("Heartbeat thread closed.");
+		logger.info("Heartbeat thread closed.");
 	}
 }

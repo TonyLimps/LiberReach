@@ -7,7 +7,7 @@
    <children>
       <HBox alignment="CENTER_LEFT" prefHeight="0.0" prefWidth="600.0">
          <children>
-            <Label text="%add.label.ip" />
+            <Label prefWidth="100.0" text="%add.label.ip" />
             <TextField fx:id="IPField" HBox.hgrow="ALWAYS">
                <HBox.margin>
                   <Insets left="20.0" />
@@ -20,8 +20,8 @@
       </HBox>
       <HBox alignment="CENTER_LEFT" prefHeight="23.0" prefWidth="497.0">
          <children>
-            <Label text="%add.label.port" />
-            <TextField fx:id="portField" HBox.hgrow="ALWAYS">
+            <Label prefWidth="100.0" text="%add.label.port" />
+            <TextField fx:id="portField" prefHeight="23.0" prefWidth="375.0" HBox.hgrow="SOMETIMES">
                <HBox.margin>
                   <Insets left="20.0" />
                </HBox.margin>
@@ -33,8 +33,8 @@
       </HBox>
       <HBox alignment="CENTER_LEFT" prefHeight="23.0" prefWidth="497.0" VBox.vgrow="ALWAYS">
          <children>
-            <Label text="%add.label.token" />
-            <TextArea fx:id="tokenArea" prefHeight="115.0" prefWidth="366.0" HBox.hgrow="ALWAYS">
+            <Label prefHeight="15.0" prefWidth="100.0" text="%add.label.token" />
+            <TextArea fx:id="tokenArea" prefHeight="139.0" prefWidth="380.0" HBox.hgrow="ALWAYS">
                <HBox.margin>
                   <Insets left="20.0" />
                </HBox.margin>
@@ -44,7 +44,7 @@
             <Insets left="50.0" right="50.0" top="20.0" />
          </VBox.margin>
       </HBox>
-      <Button fx:id="addButton" mnemonicParsing="false" text="%add.button.add">
+      <Button fx:id="addButton" mnemonicParsing="false" onAction="#onAddButtonAction" text="%add.button.add">
          <VBox.margin>
             <Insets bottom="50.0" right="50.0" top="20.0" />
          </VBox.margin>

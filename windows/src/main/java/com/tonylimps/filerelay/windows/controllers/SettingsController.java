@@ -3,8 +3,10 @@ package com.tonylimps.filerelay.windows.controllers;
 import com.tonylimps.filerelay.core.Profile;
 import com.tonylimps.filerelay.windows.Main;
 import com.tonylimps.filerelay.windows.managers.WindowManager;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -14,8 +16,11 @@ import java.util.ResourceBundle;
 
 public class SettingsController {
 
+	private boolean isSettingsChanged;
+
 	private HashMap<Locale, ResourceBundle> supportedResourceBundles;
 	private Locale locale;
+	private String lastSelectedLanguage;
 
 	private static SettingsController instance;
 
@@ -43,25 +48,43 @@ public class SettingsController {
 	private Label portLabel;
 	@FXML
 	private TextField portField;
+	@FXML
+	private Button applyButton;
+	@FXML
+	private Button cancelButton;
 
 	@FXML
 	private void initialize() {
 		instance = this;
+		isSettingsChanged = false;
+		applyButton.setDisable(true);
 		supportedResourceBundles = Main.getResourceBundleManager().getSupportedResourceBundles();
 		locale = Main.getProfileManager().getProfile().getLocale();
 		languageComboBox.setValue(supportedResourceBundles.get(locale).getString("language"));
+		lastSelectedLanguage = languageComboBox.getValue();
 		Profile profile = Main.getProfileManager().getProfile();
 		nameField.setText(profile.getDeviceName());
 		portField.setText(String.valueOf(profile.getPort()));
+		Platform.runLater(() -> {
+			Stage stage = WindowManager.getStage("settings");
+			stage.setOnCloseRequest(event -> {
+				if(SettingsController.getInstance().isSettingsChanged()){
+					SettingsController.getInstance().apply();
+				}
+				WindowManager.hide("settings");
+			});
+			stage.setTitle(Main.getResourceBundleManager().getBundle().getString("settings.title"));
+		});
 	}
 
 	@FXML
-	private void onApplyButtonAction() {
+	public void apply() {
 		Profile profile = Main.getProfileManager().getProfile();
 		profile.setLocale(locale);
 		profile.setDeviceName(nameField.getText());
-		if (isPortValid(Integer.parseInt(portLabel.getText()))) {
-			profile.setPort(Integer.parseInt(portField.getText()));
+		int port = Integer.parseInt(portField.getText());
+		if (isPortValid(port)) {
+			profile.setPort(port);
 		}
 		Main.getProfileManager().saveProfile();
 		Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -89,12 +112,14 @@ public class SettingsController {
 											   locale = Locale.forLanguageTag(bundle.getString("locale"));
 										   }
 								);
-
+		isSettingsChanged = true;
+		applyButton.setDisable(false);
 	}
 
 	@FXML
-	private void flushSupportedLanguages() {
+	private void onLanguageComboBoxClick() {
 		languageComboBox.getItems().clear();
+		supportedResourceBundles = Main.getResourceBundleManager().getSupportedResourceBundles();
 		supportedResourceBundles.values().stream()
 								.forEach(bundle -> {
 									languageComboBox.getItems().add(bundle.getString("language"));
@@ -124,4 +149,22 @@ public class SettingsController {
 		return timeRemainingLabel;
 	}
 
+	public ComboBox<String> getLanguageComboBox() {
+		return languageComboBox;
+	}
+
+	public String getLastSelectedLanguage() {
+		return lastSelectedLanguage;
+	}
+
+	public void setLastSelectedLanguage(String lastSelectedLanguage) {
+		this.lastSelectedLanguage = lastSelectedLanguage;
+	}
+
+	public boolean isSettingsChanged() {
+		return isSettingsChanged;
+	}
+	public void setSettingsChanged(boolean isSettingsChanged) {
+		this.isSettingsChanged = isSettingsChanged;
+	}
 }

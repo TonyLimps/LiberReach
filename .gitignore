@@ -1,7 +1,7 @@
 profile.dat
 logs
 **/.mvn/
-**/.idea/
+.idea/
 **/.vscode/
 **/.vs/
 *.iml

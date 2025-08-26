@@ -1,8 +1,6 @@
 package com.tonylimps.filerelay.core;
 
 import com.alibaba.fastjson2.JSON;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -18,11 +16,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.random.RandomGenerator;
 
 public class Core{
 
-	private static final Logger logger = LogManager.getLogger(Core.class);
 
     private static final String HASH_ALGORITHM = "SHA3-256";
     private static final String ENCRYPT_ALGORITHM = "AES";
@@ -112,8 +108,5 @@ public class Core{
         return address.getHostAddress();
     }
 
-	public static Logger getLogger() {
-		return logger;
-	}
 
 }
