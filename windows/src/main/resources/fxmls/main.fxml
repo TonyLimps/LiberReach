@@ -47,17 +47,17 @@
                                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                                     <children>
                                         <Label fx:id="authorizedLabel" layoutX="-1.0" text="%main.label.authorized" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                                        <ListView fx:id="authorizedList" layoutX="6.0" layoutY="50.0" onMouseClicked="#onAuthorizedListviewClick" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="15.0" />
+                                        <ListView fx:id="authorizedList" layoutX="6.0" layoutY="50.0" onMouseClicked="#onAuthorizedListviewClick" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="15.0" />
                                         <ScrollBar fx:id="authorizedScrollBar" layoutX="249.0" layoutY="81.0" orientation="VERTICAL" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="15.0" />
-                                        <Button layoutX="60.0" layoutY="251.0" mnemonicParsing="false" text="%main.button.authorizationRequests" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="14.0" />
+                                        <Button layoutX="60.0" layoutY="251.0" mnemonicParsing="false" text="%main.button.authorizationRequests" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" />
                                     </children>
                                 </AnchorPane>
                                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                                     <children>
                                         <Label fx:id="viewableLabel" text="%main.label.viewable" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                                        <ListView fx:id="viewableList" layoutX="17.0" layoutY="48.0" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="15.0" />
-                                        <ScrollBar fx:id="viewableScrollBar" layoutX="242.0" layoutY="45.0" orientation="VERTICAL" prefHeight="196.0" prefWidth="14.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="15.0" />
-                                        <Button fx:id="addDeviceButton" layoutY="294.0" mnemonicParsing="false" onAction="#onAddButtonAction" prefHeight="23.0" prefWidth="228.0" text="%main.button.addDevice" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="14.0" />
+                                        <ListView fx:id="viewableList" layoutX="17.0" layoutY="48.0" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="15.0" />
+                                        <ScrollBar fx:id="viewableScrollBar" layoutX="242.0" layoutY="45.0" orientation="VERTICAL" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="15.0" />
+                                        <Button fx:id="addDeviceButton" layoutY="294.0" mnemonicParsing="false" onAction="#onAddButtonAction" prefHeight="23.0" prefWidth="228.0" text="%main.button.addDevice" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" />
                                     </children>
                                 </AnchorPane>
                             </items>
@@ -73,16 +73,16 @@
                                 <!-- 文件浏览区域 - 设置优先扩展 -->
                                 <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="100.0" VBox.vgrow="ALWAYS">
                                     <children>
-                                        <HBox maxHeight="23.0" prefHeight="100.0" prefWidth="9999.0">
+                                        <HBox maxHeight="23.0">
                                             <children>
                                                 <Button fx:id="backButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%main.button.back" />
                                                 <TextField fx:id="pathField" promptText="%main.textField.path" HBox.hgrow="ALWAYS" />
                                                 <Button fx:id="flushButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%main.button.flush" HBox.hgrow="NEVER" />
                                             </children>
                                         </HBox>
-                                        <HBox prefHeight="100.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+                                        <HBox VBox.vgrow="ALWAYS">
                                             <children>
-                                                <ListView fx:id="fileList" HBox.hgrow="ALWAYS" />
+                                                <ListView fx:id="fileList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
                                                 <ScrollBar orientation="VERTICAL" HBox.hgrow="NEVER" />
                                             </children>
                                         </HBox>
@@ -97,9 +97,9 @@
                                                 <Button fx:id="searchButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%main.button.search" HBox.hgrow="NEVER" />
                                             </children>
                                         </HBox>
-                                        <HBox prefHeight="100.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+                                        <HBox VBox.vgrow="ALWAYS">
                                             <children>
-                                                <ListView HBox.hgrow="ALWAYS" />
+                                                <ListView maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
                                                 <ScrollBar orientation="VERTICAL" HBox.hgrow="NEVER" />
                                             </children>
                                         </HBox>

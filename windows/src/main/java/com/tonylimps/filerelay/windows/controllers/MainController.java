@@ -5,6 +5,8 @@ import com.tonylimps.filerelay.core.Profile;
 import com.tonylimps.filerelay.windows.Main;
 import com.tonylimps.filerelay.windows.managers.WindowManager;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
@@ -74,6 +76,11 @@ public class MainController {
 
 	@FXML
 	private void initialize() {
+		ObservableList<String> items = FXCollections.observableArrayList();
+		items.add("sb");
+		items.add("sb");
+		items.add("sb");
+		viewableList.setItems(items);
 		instance = this;
 		ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
 		Profile profile = Main.getProfileManager().getProfile();

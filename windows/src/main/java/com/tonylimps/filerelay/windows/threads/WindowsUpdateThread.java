@@ -45,10 +45,6 @@ public class WindowsUpdateThread extends UpdateThread {
 			Platform.runLater(() -> {
 				MainController mainController = MainController.getInstance();
 				SettingsController settingsController = SettingsController.getInstance();
-				if(Objects.isNull(settingsController.getLanguageComboBox().getValue())) {
-					settingsController.getLanguageComboBox().setValue(settingsController.getLastSelectedLanguage());
-				}
-				settingsController.setLastSelectedLanguage(settingsController.getLanguageComboBox().getValue());
 				if(needToFlushToken.get()) {
 					settingsController.getTokenArea().setText(Main.getTokenThread().getToken().getValue());
 					needToFlushToken.set(false);

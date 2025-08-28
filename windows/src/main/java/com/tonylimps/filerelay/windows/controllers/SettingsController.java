@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class SettingsController {
@@ -74,6 +75,12 @@ public class SettingsController {
 				WindowManager.hide("settings");
 			});
 			stage.setTitle(Main.getResourceBundleManager().getBundle().getString("settings.title"));
+			languageComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+				if (Objects.isNull(newVal) || newVal.isEmpty()) {
+					languageComboBox.setValue(lastSelectedLanguage);
+				}
+				lastSelectedLanguage = languageComboBox.getValue();
+			});
 		});
 	}
 
@@ -152,15 +159,6 @@ public class SettingsController {
 	public ComboBox<String> getLanguageComboBox() {
 		return languageComboBox;
 	}
-
-	public String getLastSelectedLanguage() {
-		return lastSelectedLanguage;
-	}
-
-	public void setLastSelectedLanguage(String lastSelectedLanguage) {
-		this.lastSelectedLanguage = lastSelectedLanguage;
-	}
-
 	public boolean isSettingsChanged() {
 		return isSettingsChanged;
 	}

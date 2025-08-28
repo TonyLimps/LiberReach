@@ -20,6 +20,7 @@ public class WindowManager {
 		Parent root = fxmlLoader.load();
 		Scene scene = new Scene(root);
 		Stage stage = new Stage();
+		scene.getStylesheets().add(WindowManager.class.getResource("/style.css").toExternalForm());
 		stage.setScene(scene);
 		Object controller = fxmlLoader.getController();
 		initWindow(name, stage, root, controller);
