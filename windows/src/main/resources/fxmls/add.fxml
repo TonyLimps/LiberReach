@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<VBox alignment="TOP_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tonylimps.filerelay.windows.controllers.AddController">
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="TOP_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.tonylimps.filerelay.windows.controllers.AddController">
    <children>
       <HBox alignment="CENTER_LEFT" prefHeight="0.0" prefWidth="600.0">
          <children>
-            <Label prefWidth="100.0" text="%add.label.ip" />
-            <TextField fx:id="IPField" HBox.hgrow="ALWAYS">
+            <Label prefWidth="100.0" text="%add.label.address" />
+            <TextField fx:id="addressField" HBox.hgrow="ALWAYS">
                <HBox.margin>
                   <Insets left="20.0" />
                </HBox.margin>
@@ -16,19 +21,6 @@
          </children>
          <VBox.margin>
             <Insets left="50.0" right="50.0" top="50.0" />
-         </VBox.margin>
-      </HBox>
-      <HBox alignment="CENTER_LEFT" prefHeight="23.0" prefWidth="497.0">
-         <children>
-            <Label prefWidth="100.0" text="%add.label.port" />
-            <TextField fx:id="portField" prefHeight="23.0" prefWidth="375.0" HBox.hgrow="SOMETIMES">
-               <HBox.margin>
-                  <Insets left="20.0" />
-               </HBox.margin>
-            </TextField>
-         </children>
-         <VBox.margin>
-            <Insets left="50.0" right="50.0" top="20.0" />
          </VBox.margin>
       </HBox>
       <HBox alignment="CENTER_LEFT" prefHeight="23.0" prefWidth="497.0" VBox.vgrow="ALWAYS">

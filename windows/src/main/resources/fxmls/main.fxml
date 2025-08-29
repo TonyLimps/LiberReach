@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tonylimps.filerelay.windows.controllers.MainController">
+<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.tonylimps.filerelay.windows.controllers.MainController">
     <children>
         <MenuBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="NEVER">
             <menus>
@@ -38,8 +38,8 @@
                         <VBox maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minWidth="-Infinity">
                             <children>
                                 <Label fx:id="nameLabel" alignment="TOP_LEFT" text="%main.label.deviceName" VBox.vgrow="ALWAYS" />
-                                <Label fx:id="IPLabel" text="%main.label.deviceIP" VBox.vgrow="ALWAYS" />
-                                <Label fx:id="portLabel" text="%main.label.devicePort" />
+                                <Label fx:id="AddressLabel" text="%main.label.deviceAddress" VBox.vgrow="ALWAYS" />
+                        <TextField fx:id="addressField" editable="false" promptText="Address" />
                             </children>
                         </VBox>
                         <SplitPane dividerPositions="0.4772727272727273" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">

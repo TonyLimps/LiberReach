@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
 
 	printf("building vmoptions\n");
 	FILE* vmoptions = fopen(".vmoptions", "w");
-	fprintf(vmoptions, "--add-modules javafx.base,javafx.fxml,javafx.controls,javafx.graphics --module-path libs");
+	fprintf(vmoptions, "--add-modules javafx.base,javafx.fxml,javafx.controls,javafx.graphics --module-path ./libs");
 	fclose(vmoptions);
 	printf("done.\n");
 
