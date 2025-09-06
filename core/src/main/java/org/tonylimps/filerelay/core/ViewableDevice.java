@@ -7,18 +7,23 @@ import java.net.InetSocketAddress;
 
 public class ViewableDevice {
 
-	private InetSocketAddress address;
 	private boolean isAuthorized;
 	private String remarkName;
 	private String deviceName;
+	private InetSocketAddress address;
+	private String host;
+	private int port;
 
-	@JSONField(serialize = false)
 	private ViewableCommandThread viewableCommandThread;
-	@JSONField(serialize = false)
 	private boolean online;
+
+	public ViewableDevice() {
+	}
 
 	public ViewableDevice(String host, int port, String deviceName) {
 		address = new InetSocketAddress(host, port);
+		this.host = host;
+		this.port = port;
 		this.remarkName = deviceName;
 		this.deviceName = deviceName;
 	}
@@ -31,6 +36,7 @@ public class ViewableDevice {
 		this.isAuthorized = isAuthorized;
 	}
 
+	@JSONField(serialize = false)
 	public InetSocketAddress getAddress() {
 		return address;
 	}
@@ -55,6 +61,7 @@ public class ViewableDevice {
 		this.deviceName = deviceName;
 	}
 
+	@JSONField(serialize = false)
 	public ViewableCommandThread getCommandThread() {
 		return viewableCommandThread;
 	}
@@ -67,7 +74,24 @@ public class ViewableDevice {
 		return online;
 	}
 
+	@JSONField(serialize = false)
 	public void setOnline(boolean online) {
 		this.online = online;
+	}
+
+	public String getHost() {
+		return host;
+	}
+
+	public void setHost(String host) {
+		this.host = host;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
 	}
 }

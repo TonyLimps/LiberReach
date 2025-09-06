@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
@@ -32,13 +33,12 @@
         </MenuBar>
         <SplitPane fx:id="mainSplitPane" dividerPositions="0.15" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="768.0" prefWidth="1360.0" VBox.vgrow="ALWAYS">
             <items>
-                <!-- 左侧面板 - 设置固定最小宽度 -->
                 <SplitPane dividerPositions="0.19973890339425587" maxHeight="1.7976931348623157E308" minWidth="1.0" orientation="VERTICAL" prefWidth="240.0">
                     <items>
                         <VBox maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minWidth="-Infinity">
                             <children>
                                 <Label fx:id="nameLabel" alignment="TOP_LEFT" text="%main.label.deviceName" VBox.vgrow="ALWAYS" />
-                                <Label fx:id="AddressLabel" text="%main.label.deviceAddress" VBox.vgrow="ALWAYS" />
+                                <Label fx:id="addressLabel" text="%main.label.deviceAddress" VBox.vgrow="ALWAYS" />
                         <TextField fx:id="addressField" editable="false" promptText="Address" />
                             </children>
                         </VBox>
@@ -46,18 +46,27 @@
                             <items>
                                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                                     <children>
-                                        <Label fx:id="authorizedLabel" layoutX="-1.0" text="%main.label.authorized" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                                        <ListView fx:id="authorizedList" layoutX="6.0" layoutY="50.0" onMouseClicked="#onAuthorizedListviewClick" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="15.0" />
-                                        <ScrollBar fx:id="authorizedScrollBar" layoutX="249.0" layoutY="81.0" orientation="VERTICAL" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="15.0" />
-                                        <Button layoutX="60.0" layoutY="251.0" mnemonicParsing="false" text="%main.button.authorizationRequests" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" />
+                                        <Label fx:id="viewableLabel" text="%main.label.viewable" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                        <ListView fx:id="viewableList" layoutX="17.0" layoutY="48.0" onMouseClicked="#onViewableListviewClick" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="15.0" />
+                                        <ScrollBar fx:id="viewableScrollBar" layoutX="242.0" layoutY="45.0" orientation="VERTICAL" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="15.0" />
+                                        <Button fx:id="addDeviceButton" layoutY="294.0" mnemonicParsing="false" onAction="#onAddButtonAction" prefHeight="23.0" prefWidth="228.0" text="%main.button.addDevice" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" />
                                     </children>
                                 </AnchorPane>
                                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                                     <children>
-                                        <Label fx:id="viewableLabel" text="%main.label.viewable" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                                        <ListView fx:id="viewableList" layoutX="17.0" layoutY="48.0" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="15.0" />
-                                        <ScrollBar fx:id="viewableScrollBar" layoutX="242.0" layoutY="45.0" orientation="VERTICAL" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="15.0" />
-                                        <Button fx:id="addDeviceButton" layoutY="294.0" mnemonicParsing="false" onAction="#onAddButtonAction" prefHeight="23.0" prefWidth="228.0" text="%main.button.addDevice" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" />
+                                        <Label fx:id="authorizedLabel" layoutX="-1.0" text="%main.label.authorized" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                        <ListView fx:id="authorizedList" layoutX="6.0" layoutY="50.0" onMouseClicked="#onAuthorizedListviewClick" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="15.0">
+                                 <contextMenu>
+                                    <ContextMenu>
+                                      <items>
+                                          <MenuItem fx:id="authorizationMenuItem" mnemonicParsing="false" onAction="#onAuthorizationMenuItemAction" text="Authorization" />
+                                          <MenuItem mnemonicParsing="false" onAction="#onRemoveMenuItemAction" text="%main.contextMenu.remove" />
+                                          <MenuItem mnemonicParsing="false" text="%main.contextMenu.cancel" />
+                                      </items>
+                                    </ContextMenu>
+                                 </contextMenu></ListView>
+                                        <ScrollBar fx:id="authorizedScrollBar" layoutX="249.0" layoutY="81.0" orientation="VERTICAL" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="15.0" />
+                                        <Button layoutX="60.0" layoutY="251.0" mnemonicParsing="false" text="%main.button.authorizationRequests" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" />
                                     </children>
                                 </AnchorPane>
                             </items>
@@ -65,30 +74,27 @@
                     </items>
                 </SplitPane>
 
-                <!-- 中间面板 - 设置优先扩展 -->
                 <SplitPane dividerPositions="0.9360313315926893" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" orientation="VERTICAL" HBox.hgrow="ALWAYS">
                     <items>
                         <SplitPane fx:id="mainSplitPane2" dividerPositions="0.815" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
                             <items>
-                                <!-- 文件浏览区域 - 设置优先扩展 -->
                                 <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="100.0" VBox.vgrow="ALWAYS">
                                     <children>
                                         <HBox maxHeight="23.0">
                                             <children>
-                                                <Button fx:id="backButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%main.button.back" />
-                                                <TextField fx:id="pathField" promptText="%main.textField.path" HBox.hgrow="ALWAYS" />
-                                                <Button fx:id="flushButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%main.button.flush" HBox.hgrow="NEVER" />
+                                                <Button fx:id="backButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#onBackButtonAction" text="%main.button.back" />
+                                                <TextField fx:id="pathField" onKeyPressed="#onPathFieldPress" promptText="%main.textField.path" HBox.hgrow="ALWAYS" />
+                                                <Button fx:id="flushButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#onFlushButtonAction" text="%main.button.flush" HBox.hgrow="NEVER" />
                                             </children>
                                         </HBox>
                                         <HBox VBox.vgrow="ALWAYS">
                                             <children>
-                                                <ListView fx:id="fileList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
+                                                <ListView fx:id="filesList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onMouseClicked="#onFilesListViewClick" HBox.hgrow="ALWAYS" />
                                                 <ScrollBar orientation="VERTICAL" HBox.hgrow="NEVER" />
                                             </children>
                                         </HBox>
                                     </children>
                                 </VBox>
-                                <!-- 搜索区域 - 设置固定宽度 -->
                                 <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="1.0">
                                     <children>
                                         <HBox alignment="CENTER_RIGHT">

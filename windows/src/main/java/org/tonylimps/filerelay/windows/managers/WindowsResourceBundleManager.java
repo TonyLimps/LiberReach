@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 
 public class WindowsResourceBundleManager extends ResourceBundleManager {
 
-	private final Logger logger = LogManager.getLogger(this.getClass());
+	private final Logger logger = LogManager.getLogger(getClass());
 	private ResourceBundle bundle;
 	private ExceptionManager exceptionManager;
 	private Profile profile;

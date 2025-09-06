@@ -10,7 +10,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -20,12 +19,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class HeartBeatThread extends Thread {
 
-	private final Logger logger = LogManager.getLogger(this.getClass());
+	private final Logger logger = LogManager.getLogger(getClass());
 	private final AtomicBoolean running;
 
 	private final Profile profile;
 	private final ProfileManager profileManager;
-	private final ConnectThread connectThread;
+	private final UpdateThread updateThread;
 	private final int heartBeatDelayMillis;
 	private final ExceptionManager exceptionManager;
 	private final Token token;
@@ -35,12 +34,12 @@ public class HeartBeatThread extends Thread {
 		AtomicBoolean running,
 		ProfileManager profileManager,
 		Token token,
-		ConnectThread connectThread
+		UpdateThread updateThread
 	){
 		this.profileManager = profileManager;
 		this.profile = profileManager.getProfile();
 		this.running = running;
-		this.connectThread = connectThread;
+		this.updateThread = updateThread;
 		this.exceptionManager = exceptionManager;
 		this.heartBeatDelayMillis = Integer.parseInt(Core.getConfig("heartBeatDelayMillis"));
 		this.token = token;
@@ -58,20 +57,20 @@ public class HeartBeatThread extends Thread {
 							   if (Objects.isNull(commandThread)) {
 								   InetSocketAddress address = device.getAddress();
 								   commandThread = new ViewableCommandThread(
-									   new Socket(address.getAddress(), address.getPort()),
+									   device,
 									   exceptionManager,
 									   profileManager,
 									   running,
 									   token,
-									   connectThread
+									   updateThread
 								   );
 								   commandThread.start();
 							   }
 							   commandThread.send(Core.createCommand("type", CommandTypes.HEARTBEAT));
 						   }
 						   catch (Exception e) {
-								logger.error(e);
-								exceptionManager.throwException(e);
+							   logger.error(e);
+							   exceptionManager.throwException(e);
 						   }
 					   });
 				Thread.sleep(heartBeatDelayMillis);

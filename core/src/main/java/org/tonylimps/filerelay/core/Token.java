@@ -7,7 +7,7 @@ import java.security.NoSuchAlgorithmException;
 
 public class Token {
 
-	private final Logger logger = LogManager.getLogger(this.getClass());
+	private final Logger logger = LogManager.getLogger(getClass());
 	private String value;
 
 	public void flush() throws NoSuchAlgorithmException {

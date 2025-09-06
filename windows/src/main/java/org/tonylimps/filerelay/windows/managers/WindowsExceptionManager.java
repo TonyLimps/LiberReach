@@ -6,9 +6,10 @@ import org.apache.logging.log4j.Logger;
 
 public class WindowsExceptionManager extends ExceptionManager {
 
-	private final Logger logger = LogManager.getLogger(this.getClass());
+	private final Logger logger = LogManager.getLogger(getClass());
 	private int exceptions;
 
+	@Override
 	public void throwException(Exception e) {
 		try {
 			new ExceptionDialog(e, exceptions).show();

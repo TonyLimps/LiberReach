@@ -11,24 +11,27 @@ import org.apache.logging.log4j.Logger;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CommandThread extends Thread{
 
-	private final Logger logger = LogManager.getLogger(this.getClass());
+	private final Logger logger = LogManager.getLogger(getClass());
 	protected AtomicBoolean running;
 
 	protected ProfileManager profileManager;
 	protected Profile profile;
+	protected ResourceBundle bundle;
 	protected BufferedReader in;
 	protected PrintWriter out;
 	protected InetSocketAddress address;
 	protected ExceptionManager exceptionManager;
 	protected Token token;
-	protected ConnectThread connectThread;
+	protected UpdateThread updateThread;
 
 	public CommandThread(){}
 
@@ -40,7 +43,10 @@ public class CommandThread extends Thread{
 				if(Objects.isNull(commandString)){
 					break;
 				}
-				logger.info("Received from "+address+" :\n" + commandString);
+				if(! ( commandString.contains("\"type\":\"1\"") || commandString.contains("\"answerType\":\"1\"") )){
+					// 如果命令不是心跳命令就写入日志
+					logger.info("Received from {} :\n{}", address, commandString);
+				}
 				HashMap<String, String> command = JSON.parseObject(commandString, HashMap.class);
 				exec(command);
 			}
@@ -60,8 +66,8 @@ public class CommandThread extends Thread{
 			join();
 		}
 		catch (InterruptedException e) {
-			logger.info("Command thread "+getName()+" interrupted.");
+			logger.info("Command thread {} interrupted.", getName());
 		}
-		logger.info("Command thread "+getName()+" closed.");
+		logger.info("Command thread {} closed.", getName());
 	}
 }

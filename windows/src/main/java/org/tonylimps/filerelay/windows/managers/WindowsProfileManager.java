@@ -1,11 +1,11 @@
 package org.tonylimps.filerelay.windows.managers;
 
 import com.alibaba.fastjson2.JSON;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tonylimps.filerelay.core.Core;
 import org.tonylimps.filerelay.core.Profile;
 import org.tonylimps.filerelay.core.managers.ProfileManager;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -19,12 +19,11 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Locale;
 import java.util.Scanner;
 
 public class WindowsProfileManager extends ProfileManager {
 
-	private final Logger logger = LogManager.getLogger(this.getClass());
+	private final Logger logger = LogManager.getLogger(getClass());
 	private final WindowsExceptionManager exceptionManager;
 	private final String UUID;
 
@@ -40,7 +39,7 @@ public class WindowsProfileManager extends ProfileManager {
 	}
 
 	@Override
-	public String getUUID() throws IOException, InterruptedException{
+	public String getUUID() throws IOException, InterruptedException {
 		ProcessBuilder processBuilder = new ProcessBuilder();
 		processBuilder.command("cmd", "/c", "wmic csproduct get uuid");
 		processBuilder.redirectErrorStream(true);
@@ -52,11 +51,13 @@ public class WindowsProfileManager extends ProfileManager {
 		process.destroy();
 		return uuid;
 	}
+
 	@Override
 	public void saveProfile() {
 		try {
 			Path path = Paths.get("profile.dat");
-			String encryptedString = Core.encrypt(JSON.toJSONString(profile), UUID);
+			String profileString = JSON.toJSONString(profile);
+			String encryptedString = Core.encrypt(profileString, UUID);
 			byte[] encryptedBytes = encryptedString.getBytes();
 			Files.write(path, encryptedBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 		}
@@ -65,19 +66,21 @@ public class WindowsProfileManager extends ProfileManager {
 			exceptionManager.throwException(e);
 		}
 	}
+
 	@Override
 	protected String getDeviceName() {
 		return System.getenv("COMPUTERNAME");
 	}
+
 	@Override
 	protected void initProfile() {
-		File profile = new File("profile.dat");
-		if (!profile.exists()) {
+		File profileFile = new File("profile.dat");
+		if (!profileFile.exists()) {
 			// 如果配置文件不存在就新建配置文件
 			createNewProfile();
 			logger.info("Created new profile.");
 		}
-		try (FileInputStream fileInputStream = new FileInputStream(profile)) {
+		try (FileInputStream fileInputStream = new FileInputStream(profileFile)) {
 			// 尝试读取配置文件
 			String encryptedProfileString = new String(fileInputStream.readAllBytes());
 			logger.info("Read profile.");
@@ -85,7 +88,15 @@ public class WindowsProfileManager extends ProfileManager {
 			String decryptedProfileString = Core.decrypt(encryptedProfileString, UUID);
 			logger.info("Decrypt profile.");
 			// 解析配置
-			this.profile = JSON.parseObject(decryptedProfileString, Profile.class);
+			try {
+				// profile = JSON.parseObject(decryptedProfileString, Profile.class);
+				profile = Profile.fromJSON(decryptedProfileString);
+			}
+			catch (Exception e) {
+				logger.fatal("Parse profile failed.", e);
+				throw new RuntimeException(e);
+			}
+
 			logger.info("Parsed profile.");
 		}
 		catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException |
@@ -98,17 +109,14 @@ public class WindowsProfileManager extends ProfileManager {
 			exceptionManager.throwException(e);
 		}
 	}
+
 	@Override
 	protected void createNewProfile() {
 		try {
 			Path path = Paths.get("profile.dat");
 			// 创建一个新的配置并用本机机器码加密
-			Profile emptyProfile = new Profile(
-				getDeviceName(),
-				Locale.getDefault(),
-				Integer.parseInt(Core.getConfig("defaultPort"))
-			);
-			String encryptedString = Core.encrypt(JSON.toJSONString(emptyProfile), UUID);
+			Profile emptyProfile = Profile.getEmptyProfile(getDeviceName());
+			String encryptedString = Core.encrypt(emptyProfile.toJSONString(), UUID);
 			byte[] encryptedBytes = encryptedString.getBytes();
 			// 不存在则创建，存在则覆盖
 			Files.write(path, encryptedBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
@@ -117,5 +125,10 @@ public class WindowsProfileManager extends ProfileManager {
 			logger.error(e);
 			exceptionManager.throwException(e);
 		}
+	}
+
+	@Override
+	public Profile getProfile() {
+		return profile;
 	}
 }

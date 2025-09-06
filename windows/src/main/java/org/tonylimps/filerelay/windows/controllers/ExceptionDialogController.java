@@ -6,10 +6,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-
 public class ExceptionDialogController {
 	@FXML
 	private Label messageLabel;
@@ -18,7 +14,6 @@ public class ExceptionDialogController {
 
 
 	private int exceptions;
-	private String time;
 	private String message;
 	private String stackTrace;
 
@@ -29,21 +24,8 @@ public class ExceptionDialogController {
 	}
 
 	@FXML
-	public void onSaveErrorLogButtonAction() throws IOException {
-		String name = "err-" + time + "-" + exceptions + ".log";
-		File log = new File(name);
-		log.createNewFile();
-		FileWriter fw = new FileWriter(log);
-		fw.write(time + "\n" + stackTrace);
-		fw.close();
-		messageLabel.setText("Saved as " + name);
-	}
-
-	@FXML
 	public void onIgnoreButtonAction() {
-		Platform.runLater(() -> {
-			WindowManager.close("exception" + exceptions);
-		});
+		Platform.runLater(() -> WindowManager.close("exception" + exceptions));
 	}
 
 	@FXML
@@ -51,8 +33,7 @@ public class ExceptionDialogController {
 		System.exit(1);
 	}
 
-	public void setInfo(String message, String stackTrace, int exceptions, String time) {
-		this.time = time;
+	public void setInfo(String message, String stackTrace, int exceptions) {
 		this.exceptions = exceptions;
 		this.message = message;
 		this.stackTrace = stackTrace;

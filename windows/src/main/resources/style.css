@@ -1,5 +1,4 @@
 /* JavaFX mimics Windows Style */
-
 .button,
 .combo-box {
     -fx-background-color: #E1E1E1;
@@ -351,7 +350,6 @@
 .combo-box .combo-box-popup .list-cell:empty .label {
     -fx-text-fill: transparent;
 }
-
 .combo-box .list-cell,
 .combo-box .text-input {
     -fx-background-color: transparent;
@@ -366,15 +364,22 @@
     -fx-scale-y: 0.8;
     -fx-scale-shape: false;
 }
+.list-cell:disabled,
+.combo-box .combo-box-popup .list-cell:disabled,
+.menu-item:disabled {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #FFFFFF;
+    -fx-text-fill: #B2B2B2;
+}
 
 .text-area{
     -fx-background-insets: 0;
-    -fx-background-color: white;
+    -fx-background-color: #FFFFFF;
 }
 .text-area:focused {
-    -fx-background-color: white;
+    -fx-background-color: #FFFFFF;
 }
 .text-area .content {
     -fx-padding: 0;
-    -fx-background-color: white;
+    -fx-background-color: #FFFFFF;
 }

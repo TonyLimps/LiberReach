@@ -1,5 +1,7 @@
 package org.tonylimps.filerelay.windows.controllers;
 
+import javafx.application.Platform;
+import javafx.stage.Stage;
 import org.tonylimps.filerelay.core.Core;
 import org.tonylimps.filerelay.core.ViewableDevice;
 import org.tonylimps.filerelay.core.enums.CommandTypes;
@@ -11,6 +13,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.tonylimps.filerelay.windows.managers.WindowManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,6 +42,14 @@ public class AddController {
 	private TextArea tokenArea;
 
 	@FXML
+	private void initialize() {
+		Platform.runLater(() -> {
+			Stage stage = WindowManager.getStage("add");
+			stage.setOnCloseRequest(event -> WindowManager.hide("add"));
+			stage.setTitle(Main.getResourceBundleManager().getBundle().getString("add.title"));
+		});
+	}
+	@FXML
 	private void onAddButtonAction() {
 
 		// 先给设备发送添加请求，如果令牌对了再让对面的用户同意
@@ -53,7 +64,8 @@ public class AddController {
 			address = new InetSocketAddress(host, port);
 		}
 		catch (Exception e){
-			logger.error("Parse address "+addressString+" failed.",e);
+			logger.error("Parse address {} failed.", addressString, e);
+			Main.getExceptionManager().throwException(e);
 			return;
 		}
 
@@ -61,23 +73,21 @@ public class AddController {
 		int soTimeout = Integer.parseInt(Core.getConfig("soTimeout"));
 		String result;
 		try(Socket socket = new Socket(host, port)){
-			logger.info("Connected to "+address);
+			logger.info("Connected to {}", address);
 
 			socket.setSoTimeout(soTimeout);
 			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			String command = Core.createCommand("type", CommandTypes.ADD, "token", token);
+			String command = Core.createCommand("type", CommandTypes.ADD, "token", token, "name", Main.getProfileManager().getProfile().getDeviceName());
 			out.println(command);
-			logger.info("Sent to "+address+" :\n"+command);
+			logger.info("Sent to {} :\n{}", address, command);
 			try{
 				HashMap<String,String> answer = Core.parseCommand(in.readLine());
-				if(Boolean.parseBoolean(answer.get("result"))) {
-					result = RequestResults.SUCCESS;
+				result = answer.get("content");
+				if(result.equals(RequestResults.SUCCESS)){
 					String name = answer.get("name");
 					Main.getProfileManager().getProfile().addViewableDevice(new ViewableDevice(host, port, name));
-				}
-				else {
-					result = RequestResults.WRONGTOKEN;
+					Main.getProfileManager().saveProfile();
 				}
 			}
 			catch(Exception e){

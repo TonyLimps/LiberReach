@@ -1,5 +1,7 @@
 package org.tonylimps.filerelay.windows.managers;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tonylimps.filerelay.core.Core;
 import org.tonylimps.filerelay.windows.Main;
 import org.tonylimps.filerelay.windows.controllers.ExceptionDialogController;
@@ -13,35 +15,34 @@ import java.util.ResourceBundle;
 
 public class ExceptionDialog {
 
+	private final Logger logger = LogManager.getLogger(getClass());
 	private final double windowMoveDistance = 30;
-	private int exceptions;
+	private final int exceptions;
 
 	public ExceptionDialog(Exception e, int exceptions) {
-		String time = Core.getCurrentTime();
 		this.exceptions = exceptions;
 		String message = e.getMessage();
 		String stackTrace = Core.getExceptionStackTrace(e);
 		Platform.runLater(() -> {
 			try {
 				FXMLLoader loader = new FXMLLoader(
-					getClass().getResource("exception.fxml")
+					getClass().getResource("/fxmls/exception.fxml")
 				);
 				ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
 				loader.setResources(bundle);
 				Parent root = loader.load();
 				Stage stage = new Stage();
-				stage.setScene(new Scene(root));
+				Scene scene = new Scene(root);
+				scene.getStylesheets().add("/style.css");
+				stage.setScene(scene);
 				stage.setTitle(bundle.getString("exception.title"));
-				stage.setOnCloseRequest(event -> {
-					close();
-				});
+				stage.setOnCloseRequest(event -> close());
 				ExceptionDialogController controller = loader.getController();
-				controller.setInfo(message, stackTrace, exceptions, time);
+				controller.setInfo(message, stackTrace, exceptions);
 				WindowManager.initWindow("exception" + exceptions, stage, root, loader.getController());
 			}
 			catch (Exception ex) {
-				e.printStackTrace();
-				ex.printStackTrace();
+				logger.fatal("Create exception dialog failed.",ex);
 				System.exit(1);
 			}
 		});

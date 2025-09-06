@@ -1,13 +1,10 @@
 package org.tonylimps.filerelay.core.threads;
 
-import org.tonylimps.filerelay.core.AuthorizedDevice;
-import org.tonylimps.filerelay.core.Profile;
-import org.tonylimps.filerelay.core.Token;
-import org.tonylimps.filerelay.core.ViewableDevice;
-import org.tonylimps.filerelay.core.managers.ExceptionManager;
-import org.tonylimps.filerelay.core.managers.ProfileManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.tonylimps.filerelay.core.*;
+import org.tonylimps.filerelay.core.managers.ExceptionManager;
+import org.tonylimps.filerelay.core.managers.ProfileManager;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -15,6 +12,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -27,41 +25,49 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ConnectThread extends Thread {
 
-	private final Logger logger = LogManager.getLogger(this.getClass());
+	private final Logger logger = LogManager.getLogger(getClass());
 	private final AtomicBoolean running;
 
 	private final ExceptionManager exceptionManager;
 	private final ProfileManager profileManager;
+	private final ResourceBundle bundle;
 	private final Profile profile;
 	private final Token token;
+	private final UpdateThread updateThread;
+	private final HashMap<String, ViewableDevice> viewableDevices;
+	private final HashMap<String, AuthorizedDevice> authorizedDevices;
 	private ServerSocket serverSocket;
 
-	private final HashMap<InetSocketAddress, ViewableDevice> viewableDevices;
-	private final HashMap<InetSocketAddress, AuthorizedDevice> authorizedDevices;
-
-	public ConnectThread(ExceptionManager exceptionManager,
-						 AtomicBoolean running,
-						 ProfileManager profileManager,
-						 Token token) {
+	public ConnectThread(
+		ExceptionManager exceptionManager,
+		ResourceBundle resourceBundle,
+		AtomicBoolean running,
+		ProfileManager profileManager,
+		Token token,
+		UpdateThread updateThread
+	)
+	{
 		this.exceptionManager = exceptionManager;
 		this.profileManager = profileManager;
+		this.bundle = resourceBundle;
 		this.running = running;
 		this.token = token;
 		this.profile = profileManager.getProfile();
+		this.updateThread = updateThread;
 		this.viewableDevices = profile.getViewableDevices();
 		this.authorizedDevices = profile.getAuthorizedDevices();
 	}
 
 	@Override
 	public void run() {
-		try{
+		try {
 			serverSocket = new ServerSocket(profile.getPort());
 			while (running.get()) {
 				// 不断接收套接字，并分配授权设备线程
 				// 根据规范，授权设备会主动连接查看设备
 				// 如果配置文件中有这个设备，就把命令线程和设备关联
 				Socket socket = serverSocket.accept();
-				AuthorizedCommandThread authorizedCommandThread = new AuthorizedCommandThread(socket, exceptionManager, profileManager, running, token, this);
+				AuthorizedCommandThread authorizedCommandThread = new AuthorizedCommandThread(socket, exceptionManager, bundle, profileManager, running, token, updateThread);
 				authorizedCommandThread.start();
 				InetSocketAddress address = new InetSocketAddress(socket.getInetAddress().getHostAddress(), socket.getPort());
 				AuthorizedDevice device = authorizedDevices.get(address);
@@ -71,36 +77,38 @@ public class ConnectThread extends Thread {
 			}
 		}
 		catch (IOException e) {
-			if(running.get()){
+			if (running.get()) {
 				logger.error(e);
 				exceptionManager.throwException(e);
 			}
 		}
 	}
 
-	public HashMap<InetSocketAddress, ViewableDevice> getViewableDevices() {
+	public HashMap<String, ViewableDevice> getViewableDevices() {
 		return viewableDevices;
 	}
 
-	public HashMap<InetSocketAddress, AuthorizedDevice> getAuthorizedDevices() {
+	public HashMap<String, AuthorizedDevice> getAuthorizedDevices() {
 		return authorizedDevices;
 	}
 
 	public void close() {
-		try{
+		try {
 			serverSocket.close();
 			authorizedDevices.values().stream()
-							 .map(AuthorizedDevice::getCommandThread)
-							 .forEach(CommandThread::close);
+				.map(AuthorizedDevice::getCommandThread)
+				.filter(Objects::nonNull)
+				.forEach(CommandThread::close);
 			viewableDevices.values().stream()
-						   .map(ViewableDevice::getCommandThread)
-						   .forEach(CommandThread::close);
+				.map(ViewableDevice::getCommandThread)
+				.filter(Objects::nonNull)
+				.forEach(CommandThread::close);
 		}
 		catch (IOException e) {
 
 		}
 		interrupt();
-		try{
+		try {
 			join();
 		}
 		catch (InterruptedException e) {

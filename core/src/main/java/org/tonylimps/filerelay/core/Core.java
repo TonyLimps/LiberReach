@@ -71,12 +71,6 @@ public class Core{
         Date date = new Date(System.currentTimeMillis());
         return formatter.format(date);
     }
-    // 获取socket的地址
-    public static String getAddress(Socket socket){
-        SocketAddress socketAddress = socket.getRemoteSocketAddress();
-        InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress;
-        return inetSocketAddress.getAddress().getHostAddress();
-    }
     // 将参数(k,v,k,v,...)解析为哈希表命令
     public static String createCommand(String... args){
 		HashMap<String, String> command = new HashMap<>();
@@ -94,10 +88,14 @@ public class Core{
     // 生成token
     public static String createToken() throws NoSuchAlgorithmException {
         String random = hashEncrypt(String.valueOf(new SecureRandom().nextLong()));
-        return hashEncrypt(random);
+		String time = hashEncrypt(String.valueOf(System.currentTimeMillis()));
+        return random+time;
     }
     // 命名重名设备
     public static String rename(String name, Set<String> names){
+		if(!names.contains(name)){
+			return name;
+		}
         int renameTimes = 1;
         while(names.contains(name+" ("+renameTimes+")")){
             renameTimes++;
