@@ -28,12 +28,12 @@ int main(int argc, char* argv[]) {
 	char* gcc = argv[4];
 
 	char command[512];
-	printf("preparing FileRelay directory\n");
-	mkdir("FileRelay");
-	snprintf(command, sizeof(command), RM_CMD "\"%s\"", "FileRelay");
+	printf("preparing LiberReach directory\n");
+	mkdir("LiberReach");
+	snprintf(command, sizeof(command), RM_CMD "\"%s\"", "LiberReach");
 	system(command);
-	mkdir("FileRelay");
-	_chdir("FileRelay");
+	mkdir("LiberReach");
+	_chdir("LiberReach");
 
 	printf("unpacking jar file\n");
 	memset(command, 0, sizeof(command));
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
 
 	printf("compiling launch program\n");
 	memset(command, 0, sizeof(command));
-	snprintf(command, sizeof(command), "%s%sgcc.exe -o FileRelay.exe %s", gcc, SEP, launch);
+	snprintf(command, sizeof(command), "%s%sgcc.exe -o LiberReach.exe %s", gcc, SEP, launch);
 	system(command);
 	printf("all done.\n");
 	return 0;
