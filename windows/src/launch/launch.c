@@ -6,9 +6,9 @@ void launch() {
 	char vmoptions[1024];
 	fgets(vmoptions, sizeof(vmoptions), vmoptions_f);
 	char command[1024];
-	snprintf(command, sizeof(command), "jre\\bin\\java.exe %s org.tonylimps.filerelay.windows.Main\n", vmoptions);
+	snprintf(command, sizeof(command), "jre\\bin\\java.exe %s org.tonylimps.liberreach.windows.Main\n", vmoptions);
 	printf(command); PROCESS_INFORMATION pi = { 0 };
-	SetConsoleTitleW(L"FileRelay Console");
+	SetConsoleTitleW(L"LiberReach Console");
 	system(command);
 }
 int main() {

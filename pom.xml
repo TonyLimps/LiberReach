@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.tonylimps</groupId>
-    <artifactId>filerelay</artifactId>
+    <artifactId>liberreach</artifactId>
     <version>1.0.0</version>
     <packaging>pom</packaging>
 
-    <name>filerelay</name>
+    <name>liberreach</name>
     <url>https://maven.apache.org</url>
 
     <modules>
@@ -16,8 +16,8 @@
     </modules>
 
     <properties>
-        <filerelay.version>1.0.0</filerelay.version>
-        <filerelay.windows.version>1.0.0</filerelay.windows.version>
+        <liberreach.version>1.0.0</liberreach.version>
+        <liberreach.windows.version>1.0.0</liberreach.windows.version>
 
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>

@@ -1,4 +1,4 @@
-# FileRelay
+# LiberReach
 用于设备互传文件
 开发中
 
@@ -17,4 +17,4 @@ launch-program-path: 使用C语言编写的启动程序(在项目windows/src/lau
 
 gcc-path: gcc.exe编译器所在路径
 
-构建后生成FileRelay目录，主程序为FileRelay.exe
+构建后生成LiberReach目录，主程序为LiberReach.exe

@@ -1,10 +1,10 @@
-module org.tonylimps.filerelay.core {
+module org.tonylimps.liberreach.core {
     requires com.alibaba.fastjson2;
 	requires jdk.compiler;
 	requires org.apache.logging.log4j.core;
 
-	exports org.tonylimps.filerelay.core;
-	exports org.tonylimps.filerelay.core.enums;
-	exports org.tonylimps.filerelay.core.threads;
-	exports org.tonylimps.filerelay.core.managers;
+	exports org.tonylimps.liberreach.core;
+	exports org.tonylimps.liberreach.core.enums;
+	exports org.tonylimps.liberreach.core.threads;
+	exports org.tonylimps.liberreach.core.managers;
 }
