@@ -51,14 +51,17 @@ public class CommandThread extends Thread{
 				exec(command);
 			}
 			catch (IOException e) {
-				logger.error(e);
-				exceptionManager.throwException(e);
+				error(e);
+				break;
 			}
 		}
 	}
 
 	protected void exec(HashMap<String, String> command) throws IOException {}
 
+	protected void error(Exception e) {
+		logger.error(e);
+	}
 
 	public void close(){
 		interrupt();
@@ -71,3 +74,4 @@ public class CommandThread extends Thread{
 		logger.info("Command thread {} closed.", getName());
 	}
 }
+

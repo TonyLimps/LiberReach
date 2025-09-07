@@ -2,11 +2,14 @@ package org.tonylimps.filerelay.core;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONException;
+import org.tonylimps.filerelay.core.threads.AuthorizedCommandThread;
+import org.tonylimps.filerelay.core.threads.ViewableCommandThread;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -161,10 +164,23 @@ public class Profile {
 	}
 
 	public void removeAuthorizedDevice(String name) {
+		AuthorizedDevice device = authorizedDevices.get(name);
+		device.setAddress(null);
+		AuthorizedCommandThread commandThread = device.getCommandThread();
+		if(Objects.nonNull(commandThread)){
+			commandThread.close();
+			device.setCommandThread(null);
+		}
 		authorizedDevices.remove(name);
 	}
 
 	public void removeViewableDevice(String name) {
+		ViewableDevice device = viewableDevices.get(name);
+		ViewableCommandThread commandThread = device.getCommandThread();
+		if(Objects.nonNull(commandThread)){
+			commandThread.close();
+			device.setCommandThread(null);
+		}
 		viewableDevices.remove(name);
 	}
 

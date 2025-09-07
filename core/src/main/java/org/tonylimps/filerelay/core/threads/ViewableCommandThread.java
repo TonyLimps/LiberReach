@@ -68,16 +68,11 @@ public class ViewableCommandThread extends CommandThread{
 				case CommandTypes.HEARTBEAT -> {
 					ViewableDevice viewableDevice = profile.getViewableDevices().get(device.getRemarkName());
 					if(Objects.nonNull(viewableDevice)) {
+						viewableDevice.setOnline(Boolean.parseBoolean(command.get("online")));
 						viewableDevice.setAuthorized(Boolean.parseBoolean(command.get("isAuthorized")));
 					}
 				}
 				case CommandTypes.GETPATH -> {
-					try {
-						//Thread.sleep(1000);
-					}
-					catch (Exception e) {
-						throw new RuntimeException(e);
-					}
 					updateThread.setFilesList(JSON.parseArray(command.get("files"),String.class),
 											  JSON.parseArray(command.get("folders"),String.class),
 											  JSON.parseArray(command.get("errs"), String.class)
@@ -87,11 +82,17 @@ public class ViewableCommandThread extends CommandThread{
 		}
 	}
 
-	// 这个方法可以向可查看设备发送命令并更新在线状态
+	@Override
+	protected void error(Exception e){
+		logger.error(e);
+		device.setOnline(false);
+		device.setCommandThread(null);
+	}
+
+	// 这个方法可以向可查看设备发送命令
 	public void send(String command) {
 		// 发送命令
 		out.println(command);
-		// 如果PrintWriter没出错，则认为设备在线
 
 		if(!command.contains("\"type\":\"1\"")){
 			// 如果不是心跳命令就写进日志
@@ -99,11 +100,9 @@ public class ViewableCommandThread extends CommandThread{
 		}
 
 		if(out.checkError()) {
-			device.setOnline(false);
 			device.setCommandThread(null);
 		}
 		else{
-			device.setOnline(true);
 			device.setCommandThread(this);
 		}
 	}

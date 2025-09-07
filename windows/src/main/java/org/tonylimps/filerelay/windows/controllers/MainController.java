@@ -151,6 +151,17 @@ public class MainController {
 	private void onViewableListviewClick() {
 		String name = viewableList.getSelectionModel().getSelectedItem();
 		if(Objects.nonNull(name) && !name.isEmpty()){
+			ViewableDevice device = Main.getProfileManager().getProfile().getViewableDevices().get(name);
+			if(Objects.isNull(device))return;
+			ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
+			if(!device.isAuthorized()){
+				setErrs(List.of(bundle.getString("main.fileError.accessDenied")));
+				return;
+			}
+			if(!device.isOnline()){
+				setErrs(List.of(bundle.getString("main.fileError.notOnline")));
+				return;
+			}
 			currentPath = new CustomPath(name + "::");
 			setCurrentPath(currentPath);
 		}
@@ -260,7 +271,7 @@ public class MainController {
 				if (empty || name == null || device == null) {
 					setText(null);
 					setGraphic(null);
-					setTextFill(Color.GRAY);
+					setStyle("-fx-text-fill: " + offlineColor + ";");
 					return;
 				}
 				setText(name);
@@ -280,6 +291,13 @@ public class MainController {
 
 	public void setFolders(List<String> folders) {
 		this.folders = folders;
+	}
+
+	public void setErrs(List<String> errs) {
+		files = List.of();
+		folders = List.of();
+		this.errs = errs;
+		updateFilesListview();
 	}
 
 	public void updateFilesListview() {
@@ -311,6 +329,7 @@ public class MainController {
 					String fileColor = Core.getConfig("fileColor");
 					String folderColor = Core.getConfig("folderColor");
 					String errColor = Core.getConfig("errColor");
+					if(Objects.isNull(name))return;
 					if (files.contains(name)) {
 						setStyle("-fx-text-fill: " + fileColor + ";");
 					}
@@ -323,10 +342,6 @@ public class MainController {
 				}
 			});
 		});
-	}
-
-	public void setErrs(List<String> errs) {
-		this.errs = errs;
 	}
 
 	private void updateCurrentPath(){

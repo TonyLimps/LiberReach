@@ -88,6 +88,7 @@ public class AuthorizedCommandThread extends CommandThread {
 					answer(Core.createCommand(
 						"type", CommandTypes.ANSWER,
 						"answerType", CommandTypes.HEARTBEAT,
+						"online", "true",
 						"isAuthorized", String.valueOf(device.isAuthorized())
 					));
 				}

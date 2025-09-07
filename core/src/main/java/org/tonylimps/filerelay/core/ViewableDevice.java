@@ -28,6 +28,7 @@ public class ViewableDevice {
 		this.deviceName = deviceName;
 	}
 
+	@JSONField(serialize = false)
 	public boolean isAuthorized() {
 		return isAuthorized;
 	}
@@ -70,11 +71,11 @@ public class ViewableDevice {
 		this.viewableCommandThread = viewableCommandThread;
 	}
 
+	@JSONField(serialize = false)
 	public boolean isOnline() {
 		return online;
 	}
 
-	@JSONField(serialize = false)
 	public void setOnline(boolean online) {
 		this.online = online;
 	}

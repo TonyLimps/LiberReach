@@ -52,8 +52,8 @@ public class HeartBeatThread extends Thread {
 				// 每隔一段时间遍历可查看设备，发送心跳命令，send方法会自动更新在线状态
 				profile.getViewableDevices().values()
 					   .forEach(device -> {
+						   ViewableCommandThread commandThread = device.getCommandThread();
 						   try {
-							   ViewableCommandThread commandThread = device.getCommandThread();
 							   if (Objects.isNull(commandThread)) {
 								   InetSocketAddress address = device.getAddress();
 								   commandThread = new ViewableCommandThread(
@@ -69,8 +69,7 @@ public class HeartBeatThread extends Thread {
 							   commandThread.send(Core.createCommand("type", CommandTypes.HEARTBEAT));
 						   }
 						   catch (Exception e) {
-							   logger.error(e);
-							   exceptionManager.throwException(e);
+							   commandThread.error(e);
 						   }
 					   });
 				Thread.sleep(heartBeatDelayMillis);
