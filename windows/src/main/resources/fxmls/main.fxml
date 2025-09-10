@@ -76,7 +76,7 @@
 
                 <SplitPane dividerPositions="0.9360313315926893" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" orientation="VERTICAL" HBox.hgrow="ALWAYS">
                     <items>
-                        <SplitPane fx:id="mainSplitPane2" dividerPositions="0.815" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+                        <SplitPane fx:id="mainSplitPane2" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
                             <items>
                                 <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="100.0" VBox.vgrow="ALWAYS">
                                     <children>
@@ -90,22 +90,6 @@
                                         <HBox VBox.vgrow="ALWAYS">
                                             <children>
                                                 <ListView fx:id="filesList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onMouseClicked="#onFilesListViewClick" HBox.hgrow="ALWAYS" />
-                                                <ScrollBar orientation="VERTICAL" HBox.hgrow="NEVER" />
-                                            </children>
-                                        </HBox>
-                                    </children>
-                                </VBox>
-                                <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="1.0">
-                                    <children>
-                                        <HBox alignment="CENTER_RIGHT">
-                                            <children>
-                                                <TextField fx:id="searchField" promptText="%main.textField.search" HBox.hgrow="ALWAYS" />
-                                                <Button fx:id="searchButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%main.button.search" HBox.hgrow="NEVER" />
-                                            </children>
-                                        </HBox>
-                                        <HBox VBox.vgrow="ALWAYS">
-                                            <children>
-                                                <ListView maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
                                                 <ScrollBar orientation="VERTICAL" HBox.hgrow="NEVER" />
                                             </children>
                                         </HBox>

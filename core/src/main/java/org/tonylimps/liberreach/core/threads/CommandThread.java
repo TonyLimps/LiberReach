@@ -43,7 +43,6 @@ public class CommandThread extends Thread{
 					break;
 				}
 				if(! ( commandString.contains("\"type\":\"1\"") || commandString.contains("\"answerType\":\"1\"") )){
-					// 如果命令不是心跳命令就写入日志
 					logger.info("Received from {} :\n{}", address, commandString);
 				}
 				HashMap<String, String> command = JSON.parseObject(commandString, HashMap.class);
@@ -57,6 +56,14 @@ public class CommandThread extends Thread{
 	}
 
 	protected void exec(HashMap<String, String> command) throws IOException {}
+
+	// 发送命令
+	public void send(String command) {
+		out.println(command);
+		if(!command.contains("\"type\":\"1\"")){
+			logger.info("Sent to {}:\n{}", address, command);
+		}
+	}
 
 	protected void error(Exception e) {
 		logger.error(e);

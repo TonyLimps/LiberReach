@@ -10,22 +10,33 @@ import javafx.scene.input.MouseEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.tonylimps.liberreach.core.*;
-import org.tonylimps.liberreach.core.enums.CommandTypes;
 import org.tonylimps.liberreach.core.threads.ViewableCommandThread;
 import org.tonylimps.liberreach.windows.Main;
+import org.tonylimps.liberreach.windows.annotations.FixedWidth;
+import org.tonylimps.liberreach.windows.annotations.FixedWidthHandler;
 import org.tonylimps.liberreach.windows.annotations.SingleFocus;
+import org.tonylimps.liberreach.windows.annotations.SingleFocusHandler;
 import org.tonylimps.liberreach.windows.managers.WindowManager;
 
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.tonylimps.liberreach.core.enums.CommandType.GETPATH;
+
 public class MainController {
 
 	private static MainController instance;
 	private final Logger logger = LogManager.getLogger(MainController.class);
-	@FXML @SingleFocus public SplitPane mainSplitPane;
+	@FXML @SingleFocus @FixedWidth public SplitPane mainSplitPane;
+
+	/*
+	搜索功能已暂时弃用
 	@FXML @SingleFocus public SplitPane mainSplitPane2;
+	@FXML @SingleFocus public TextField searchField;
+	@FXML @SingleFocus public Button searchButton;
+	*/
+
 	@FXML @SingleFocus public MenuItem fileSettingsMenuItem;
 	@FXML @SingleFocus public MenuItem fileExitMenuItem;
 	@FXML @SingleFocus public MenuItem helpAboutMenuItem;
@@ -42,17 +53,10 @@ public class MainController {
 	@FXML @SingleFocus public Button backButton;
 	@FXML @SingleFocus public TextField pathField;
 	@FXML @SingleFocus public Button flushButton;
-	@FXML @SingleFocus public TextField searchField;
-	@FXML @SingleFocus public Button searchButton;
 	@FXML @SingleFocus public ListView<String> filesList;
 	@FXML @SingleFocus public Button downloadButton;
 	@FXML @SingleFocus public Button uploadButton;
-	private double fixedWidth;
-	private double fixedWidth2;
-	private boolean ignoreWidthChange = false;
-	private boolean ignoreWidthChange2 = false;
 	private CustomPath currentPath = new CustomPath("");
-	private boolean waiting;
 	private List<String> files = new ArrayList<>();
 	private List<String> folders = new ArrayList<>();
 	private List<String> errs = new ArrayList<>();
@@ -79,41 +83,10 @@ public class MainController {
 		Platform.runLater(() -> {
 			WindowManager.getStage("main").setTitle(bundle.getString("main.title"));
 			WindowManager.getStage("main").setOnCloseRequest(event -> Main.exit(0));
-			initSplitPane();
-		});
-	}
-
-	private void initSplitPane() {
-		fixedWidth = mainSplitPane.getDividerPositions()[0] * mainSplitPane.getWidth();
-		mainSplitPane.getDividers().get(0).positionProperty().addListener((obs, oldVal, newVal) -> {
-			if (!ignoreWidthChange) {
-				fixedWidth = newVal.doubleValue() * mainSplitPane.getWidth();
-			}
-		});
-
-		mainSplitPane.widthProperty().addListener((obs, oldVal, newVal) -> {
-			if (newVal.doubleValue() != oldVal.doubleValue()) {
-				ignoreWidthChange = true;
-				double newPosition = fixedWidth / newVal.doubleValue();
-				mainSplitPane.setDividerPosition(0, newPosition);
-				ignoreWidthChange = false;
-			}
-		});
-
-		fixedWidth2 = (1 - mainSplitPane2.getDividerPositions()[0]) * mainSplitPane2.getWidth();
-		mainSplitPane2.getDividers().get(0).positionProperty().addListener((obs, oldVal, newVal) -> {
-			if (!ignoreWidthChange2) {
-				fixedWidth2 = (1 - newVal.doubleValue()) * mainSplitPane2.getWidth();
-			}
-		});
-
-		mainSplitPane2.widthProperty().addListener((obs, oldVal, newVal) -> {
-			if (newVal.doubleValue() != oldVal.doubleValue()) {
-				ignoreWidthChange2 = true;
-				double newPosition = fixedWidth2 / newVal.doubleValue();
-				mainSplitPane2.setDividerPosition(0, 1 - newPosition);
-				ignoreWidthChange2 = false;
-			}
+			SingleFocusHandler singleFocusHandler = new SingleFocusHandler();
+			singleFocusHandler.handle(getInstance());
+			FixedWidthHandler fixedWidthHandler = new FixedWidthHandler();
+			fixedWidthHandler.handle(getInstance());
 		});
 	}
 
@@ -299,7 +272,6 @@ public class MainController {
 	}
 
 	public void updateFilesListview() {
-		if(waiting)return;
 		List<String> filesAndFolders = new ArrayList<>();
 		if(!folders.isEmpty()) {
 			filesAndFolders.addAll(folders);
@@ -365,7 +337,7 @@ public class MainController {
 				return;
 			}
 			String command = Core.createCommand(
-				"type",CommandTypes.GETPATH,
+				"type", GETPATH.getCode(),
 				"path", newPath.toString());
 			ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
 			Platform.runLater(() -> {

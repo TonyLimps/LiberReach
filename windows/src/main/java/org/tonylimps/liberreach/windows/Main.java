@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * <h1>LiberReach</h1>
- * <p>更自由的文件传输软件</p>
+ * <p>自由高效的文件传输软件</p>
  *
  * @author Tony Limps
  * @version Windows 1.0.0
@@ -98,8 +98,6 @@ public class Main extends Application {
 			WindowManager.initWindow("add", "/fxmls/add.fxml", bundle);
 			WindowManager.show("main");
 			logger.info("Application started.");
-			SingleFocusHandler singleFocusHandler = new SingleFocusHandler();
-			singleFocusHandler.handle(MainController.getInstance());
 		}
 		catch (Exception e) {
 			logger.fatal("Load UI content failed.");

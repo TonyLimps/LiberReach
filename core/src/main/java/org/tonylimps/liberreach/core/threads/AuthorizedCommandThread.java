@@ -5,8 +5,7 @@ import org.tonylimps.liberreach.core.AuthorizedDevice;
 import org.tonylimps.liberreach.core.Core;
 import org.tonylimps.liberreach.core.CustomPath;
 import org.tonylimps.liberreach.core.Token;
-import org.tonylimps.liberreach.core.enums.CommandTypes;
-import org.tonylimps.liberreach.core.enums.RequestResults;
+import org.tonylimps.liberreach.core.enums.CommandType;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
 import org.tonylimps.liberreach.core.managers.ProfileManager;
 import org.apache.logging.log4j.LogManager;
@@ -19,6 +18,10 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+
+import static org.tonylimps.liberreach.core.enums.CommandType.*;
+import static org.tonylimps.liberreach.core.enums.RequestResult.SUCCESS;
+import static org.tonylimps.liberreach.core.enums.RequestResult.WRONGTOKEN;
 
 /*
  * 负责与授权设备通信的命令线程
@@ -53,47 +56,48 @@ public class AuthorizedCommandThread extends CommandThread {
 	}
 	@Override
 	protected void exec(HashMap<String, String> command) throws IOException {
-		switch (command.get("type")) {
-			case CommandTypes.ADD -> {
+		CommandType type = CommandType.fromCode(command.get("type"));
+		switch (type) {
+			case ADD -> {
 				// 添加设备请求
 				if (command.get("token").equals(token.getValue())) {
 					// 如果令牌正确，回应允许命令
-					answer(Core.createCommand(
-						"type", CommandTypes.ANSWER,
-						"answerType", CommandTypes.ADD,
+					send(Core.createCommand(
+						"type", ANSWER.getCode(),
+						"answerType", ADD.getCode(),
 						"name", profile.getDeviceName(),
 						"host", Core.getHostAddress(),
 						"port", profile.getPort().toString(),
-						"content", RequestResults.SUCCESS
+						"content", SUCCESS.getCode()
 					));
 					profile.addAuthorizedDevice(new AuthorizedDevice(address.getAddress(), command.get("name")));
 					profileManager.saveProfile();
 				}
 				else {
 					// 如果令牌错误，回应拒绝命令
-					answer(Core.createCommand(
-						"type", CommandTypes.ANSWER,
-						"answerType", CommandTypes.ADD,
+					send(Core.createCommand(
+						"type", ANSWER.getCode(),
+						"answerType", ADD.getCode(),
 						"host", Core.getHostAddress(),
 						"port", profile.getPort().toString(),
-						"content", RequestResults.WRONGTOKEN
+						"content", WRONGTOKEN.getCode()
 					));
 				}
 			}
-			case CommandTypes.HEARTBEAT -> {
+			case HEARTBEAT -> {
 				AuthorizedDevice device = profile.getAuthorizedDevices().values().stream()
 					.filter(d -> d.getAddress().equals(address.getAddress()))
 					.findFirst().orElse(null);
 				if(Objects.nonNull(device)){
-					answer(Core.createCommand(
-						"type", CommandTypes.ANSWER,
-						"answerType", CommandTypes.HEARTBEAT,
+					send(Core.createCommand(
+						"type", ANSWER.getCode(),
+						"answerType", HEARTBEAT.getCode(),
 						"online", "true",
 						"isAuthorized", String.valueOf(device.isAuthorized())
 					));
 				}
 			}
-			case CommandTypes.GETPATH -> {
+			case GETPATH -> {
 				AuthorizedDevice device = profile.getAuthorizedDevices().values().stream()
 					.filter(d -> d.getAddress().equals(address.getAddress()))
 					.findFirst().orElse(null);
@@ -151,9 +155,9 @@ public class AuthorizedCommandThread extends CommandThread {
 							}
 						}
 					}
-					answer(Core.createCommand(
-						"type", CommandTypes.ANSWER,
-						"answerType", CommandTypes.GETPATH,
+					send(Core.createCommand(
+						"type", ANSWER.getCode(),
+						"answerType", GETPATH.getCode(),
 						"folders", isAuthorized
 							? JSON.toJSONString(folders)
 							: unAuthorized,
@@ -165,14 +169,12 @@ public class AuthorizedCommandThread extends CommandThread {
 					));
 				}
 			}
+			case DOWNLOAD -> {
+				CustomPath customPath = new CustomPath(command.get("path"));
+				String path = customPath.getPath();
+
+			}
 		}
 	}
 
-	public void answer(String command) {
-		if(!command.contains("\"answerType\":\"1\"")){
-			// 不是心跳命令就写进日志
-			logger.info("Answered to {} :\n{}", address.toString(), command);
-		}
-		out.println(command);
-	}
 }

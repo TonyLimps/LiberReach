@@ -3,15 +3,15 @@ package org.tonylimps.liberreach.core.threads;
 import org.tonylimps.liberreach.core.Core;
 import org.tonylimps.liberreach.core.Profile;
 import org.tonylimps.liberreach.core.Token;
-import org.tonylimps.liberreach.core.enums.CommandTypes;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
 import org.tonylimps.liberreach.core.managers.ProfileManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.net.InetSocketAddress;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.tonylimps.liberreach.core.enums.CommandType.HEARTBEAT;
 
 /*
  * 这是心跳线程，每隔一段时间向查看设备发送心跳命令
@@ -55,7 +55,6 @@ public class HeartBeatThread extends Thread {
 						   ViewableCommandThread commandThread = device.getCommandThread();
 						   try {
 							   if (Objects.isNull(commandThread)) {
-								   InetSocketAddress address = device.getAddress();
 								   commandThread = new ViewableCommandThread(
 									   device,
 									   exceptionManager,
@@ -66,7 +65,7 @@ public class HeartBeatThread extends Thread {
 								   );
 								   commandThread.start();
 							   }
-							   commandThread.send(Core.createCommand("type", CommandTypes.HEARTBEAT));
+							   commandThread.send(Core.createCommand("type", HEARTBEAT.getCode()));
 						   }
 						   catch (Exception e) {
 							   commandThread.error(e);

@@ -4,8 +4,7 @@ import javafx.application.Platform;
 import javafx.stage.Stage;
 import org.tonylimps.liberreach.core.Core;
 import org.tonylimps.liberreach.core.ViewableDevice;
-import org.tonylimps.liberreach.core.enums.CommandTypes;
-import org.tonylimps.liberreach.core.enums.RequestResults;
+import org.tonylimps.liberreach.core.enums.RequestResult;
 import org.tonylimps.liberreach.windows.Main;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -23,6 +22,8 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.ResourceBundle;
+
+import static org.tonylimps.liberreach.core.enums.CommandType.ADD;
 
 
 /*
@@ -71,63 +72,63 @@ public class AddController {
 
 		String token = tokenArea.getText();
 		int soTimeout = Integer.parseInt(Core.getConfig("soTimeout"));
-		String result;
+		RequestResult result;
 		try(Socket socket = new Socket(host, port)){
 			logger.info("Connected to {}", address);
 
 			socket.setSoTimeout(soTimeout);
 			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			String command = Core.createCommand("type", CommandTypes.ADD, "token", token, "name", Main.getProfileManager().getProfile().getDeviceName());
+			String command = Core.createCommand("type", ADD.getCode(), "token", token, "name", Main.getProfileManager().getProfile().getDeviceName());
 			out.println(command);
 			logger.info("Sent to {} :\n{}", address, command);
 			try{
 				HashMap<String,String> answer = Core.parseCommand(in.readLine());
-				result = answer.get("content");
-				if(result.equals(RequestResults.SUCCESS)){
+				result = RequestResult.fromCode(answer.get("content"));
+				if(result.equals(RequestResult.SUCCESS)){
 					String name = answer.get("name");
 					Main.getProfileManager().getProfile().addViewableDevice(new ViewableDevice(host, port, name));
 					Main.getProfileManager().saveProfile();
 				}
 			}
 			catch(Exception e){
-				result = RequestResults.TIMEOUT;
+				result = RequestResult.TIMEOUT;
 			}
 		}
 		catch(IOException e){
 			logger.error("Connect failed.");
 			logger.error(e);
-			result = RequestResults.OFFLINE;
+			result = RequestResult.OFFLINE;
 		}
 		Alert alert = getAlert(result);
 		alert.showAndWait();
 	}
 
-	private static Alert getAlert(String result) {
+	private static Alert getAlert(RequestResult result) {
 		Alert alert = null;
 		ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
 		switch(result){
-			case RequestResults.SUCCESS -> {
+			case SUCCESS -> {
 				alert = new Alert(Alert.AlertType.INFORMATION);
 				alert.setTitle(bundle.getString("add.alert.success.title"));
 				alert.setContentText(bundle.getString("add.alert.success.content"));
 			}
-			case RequestResults.WRONGTOKEN -> {
+			case WRONGTOKEN -> {
 				alert = new Alert(Alert.AlertType.ERROR);
 				alert.setTitle(bundle.getString("add.alert.wrongToken.title"));
 				alert.setContentText(bundle.getString("add.alert.wrongToken.content"));
 			}
-			case RequestResults.TIMEOUT -> {
+			case TIMEOUT -> {
 				alert = new Alert(Alert.AlertType.ERROR);
 				alert.setTitle(bundle.getString("add.alert.timeout.title"));
 				alert.setContentText(bundle.getString("add.alert.timeout.content"));
 			}
-			case RequestResults.OFFLINE -> {
+			case OFFLINE -> {
 				alert = new Alert(Alert.AlertType.ERROR);
 				alert.setTitle(bundle.getString("add.alert.offline.title"));
 				alert.setContentText(bundle.getString("add.alert.offline.content"));
 			}
-			case RequestResults.TOOMANYREQUESTS -> {
+			case TOOMANYREQUESTS -> {
 				alert = new Alert(Alert.AlertType.ERROR);
 				alert.setTitle(bundle.getString("add.alert.tooManyRequests.title"));
 				alert.setContentText(bundle.getString("add.alert.tooManyRequests.content"));

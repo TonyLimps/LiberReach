@@ -3,8 +3,8 @@ package org.tonylimps.liberreach.core.threads;
 import com.alibaba.fastjson2.JSON;
 import org.tonylimps.liberreach.core.Token;
 import org.tonylimps.liberreach.core.ViewableDevice;
-import org.tonylimps.liberreach.core.enums.CommandTypes;
-import org.tonylimps.liberreach.core.enums.RequestResults;
+import org.tonylimps.liberreach.core.enums.CommandType;
+import org.tonylimps.liberreach.core.enums.RequestResult;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
 import org.tonylimps.liberreach.core.managers.ProfileManager;
 import org.apache.logging.log4j.LogManager;
@@ -18,6 +18,8 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.tonylimps.liberreach.core.enums.CommandType.ANSWER;
 
 /*
  * 负责与查看设备通信的命令线程
@@ -55,24 +57,26 @@ public class ViewableCommandThread extends CommandThread{
 
 	@Override
 	protected void exec(HashMap<String, String> command) throws IOException {
-		if (command.get("type").equals(CommandTypes.ANSWER)) {
+		CommandType type = CommandType.fromCode(command.get("type"));
+		if (type == ANSWER) {
 			// 收到回应
-			switch (command.get("answerType")) {
+			CommandType answerType = CommandType.fromCode(command.get("answerType"));
+			switch (answerType) {
 				// 确认回应命令类型
-				case CommandTypes.ADD -> {
-					if (command.get("content").equals(RequestResults.SUCCESS)) {
+				case ADD -> {
+					if (command.get("content").equals(RequestResult.SUCCESS)) {
 						String name = command.get("name");
 						profile.addViewableDevice(new ViewableDevice(address.getHostString(), address.getPort(), name));
 					}
 				}
-				case CommandTypes.HEARTBEAT -> {
+				case HEARTBEAT -> {
 					ViewableDevice viewableDevice = profile.getViewableDevices().get(device.getRemarkName());
 					if(Objects.nonNull(viewableDevice)) {
 						viewableDevice.setOnline(Boolean.parseBoolean(command.get("online")));
 						viewableDevice.setAuthorized(Boolean.parseBoolean(command.get("isAuthorized")));
 					}
 				}
-				case CommandTypes.GETPATH -> {
+				case GETPATH -> {
 					updateThread.setFilesList(JSON.parseArray(command.get("files"),String.class),
 											  JSON.parseArray(command.get("folders"),String.class),
 											  JSON.parseArray(command.get("errs"), String.class)
@@ -87,24 +91,6 @@ public class ViewableCommandThread extends CommandThread{
 		logger.error(e);
 		device.setOnline(false);
 		device.setCommandThread(null);
-	}
-
-	// 这个方法可以向可查看设备发送命令
-	public void send(String command) {
-		// 发送命令
-		out.println(command);
-
-		if(!command.contains("\"type\":\"1\"")){
-			// 如果不是心跳命令就写进日志
-			logger.info("Sent to {}:\n{}", address, command);
-		}
-
-		if(out.checkError()) {
-			device.setCommandThread(null);
-		}
-		else{
-			device.setCommandThread(this);
-		}
 	}
 
 }
