@@ -1,11 +1,11 @@
 package org.tonylimps.liberreach.windows.managers;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tonylimps.liberreach.core.Core;
 import org.tonylimps.liberreach.core.Profile;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
 import org.tonylimps.liberreach.core.managers.ResourceBundleManager;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.FileInputStream;
 import java.io.IOException;

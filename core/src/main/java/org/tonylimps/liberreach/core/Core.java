@@ -8,8 +8,11 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -27,7 +30,7 @@ public class Core{
 	public static String getConfig(String key) {
 		return ResourceBundle.getBundle("config").getString(key);
 	}
-    // 根据key密钥加密data字符串
+    // UNSAFE 根据key密钥加密data字符串
     public static String encrypt(String data, String stringKey) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         byte[] key = stringKey.getBytes();
         SecretKeySpec secretKeySpec = new SecretKeySpec(key, ENCRYPT_ALGORITHM);
@@ -35,7 +38,7 @@ public class Core{
         cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
         return Base64.getEncoder().encodeToString(cipher.doFinal(data.getBytes()));
     }
-    // 同上文 解密
+    // UNSAFE 同上文 解密
     public static String decrypt(String data, String stringKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         byte[] key = stringKey.getBytes();
         SecretKeySpec secretKeySpec = new SecretKeySpec(key, ENCRYPT_ALGORITHM);
@@ -44,7 +47,7 @@ public class Core{
         byte[] result = Base64.getDecoder().decode(data.replaceAll("\r\n", ""));
         return new String(cipher.doFinal(result));
     }
-    // 哈希加密
+    // 散列
     public static String hashEncrypt(String data) throws NoSuchAlgorithmException {
         MessageDigest sha3Digest = MessageDigest.getInstance(HASH_ALGORITHM);
         byte[] hashBytes = sha3Digest.digest(data.getBytes());
@@ -108,5 +111,16 @@ public class Core{
         return address.getHostAddress();
     }
 
+	// 检查端口是否可用
+	public static boolean isPortValid(int port) {
+		try {
+			ServerSocket testSocket = new ServerSocket(port);
+			testSocket.close();
+			return true;
+		}
+		catch (IOException e) {
+			return false;
+		}
+	}
 
 }

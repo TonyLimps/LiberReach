@@ -1,15 +1,13 @@
 package org.tonylimps.liberreach.windows.controllers;
 
-import org.tonylimps.liberreach.core.Profile;
-import org.tonylimps.liberreach.windows.Main;
-import org.tonylimps.liberreach.windows.managers.WindowManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import org.tonylimps.liberreach.core.Profile;
+import org.tonylimps.liberreach.windows.Main;
+import org.tonylimps.liberreach.windows.managers.WindowManager;
 
-import java.io.IOException;
-import java.net.ServerSocket;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Objects;
@@ -25,34 +23,18 @@ public class SettingsController {
 
 	private static SettingsController instance;
 
-	@FXML
-	private Label languageLabel;
-	@FXML
-	private ComboBox<String> languageComboBox;
-	@FXML
-	private Label nameLabel;
-	@FXML
-	private TextField nameField;
-	@FXML
-	private Label downloadPathLabel;
-	@FXML
-	private TextField downloadPathField;
-	@FXML
-	private Button browseDownloadPathButton;
-	@FXML
-	private Label tokenLabel;
-	@FXML
-	private TextArea tokenArea;
-	@FXML
-	private Label timeRemainingLabel;
-	@FXML
-	private Label portLabel;
-	@FXML
-	private TextField portField;
-	@FXML
-	private Button applyButton;
-	@FXML
-	private Button cancelButton;
+	@FXML public Label languageLabel;
+	@FXML public ComboBox<String> languageComboBox;
+	@FXML public Label nameLabel;
+	@FXML public TextField nameField;
+	@FXML public Label downloadPathLabel;
+	@FXML public TextField downloadPathField;
+	@FXML public Button browseDownloadPathButton;
+	@FXML public Label tokenLabel;
+	@FXML public TextArea tokenArea;
+	@FXML public Label timeRemainingLabel;
+	@FXML public Button applyButton;
+	@FXML public Button cancelButton;
 
 	@FXML
 	private void initialize() {
@@ -65,7 +47,6 @@ public class SettingsController {
 		lastSelectedLanguage = languageComboBox.getValue();
 		Profile profile = Main.getProfileManager().getProfile();
 		nameField.setText(profile.getDeviceName());
-		portField.setText(String.valueOf(profile.getPort()));
 		Platform.runLater(() -> {
 			Stage stage = WindowManager.getStage("settings");
 			stage.setOnCloseRequest(event -> {
@@ -89,10 +70,6 @@ public class SettingsController {
 		Profile profile = Main.getProfileManager().getProfile();
 		profile.setLocale(locale);
 		profile.setDeviceName(nameField.getText());
-		int port = Integer.parseInt(portField.getText());
-		if (isPortValid(port)) {
-			profile.setPort(port);
-		}
 		Main.getProfileManager().saveProfile();
 		Alert alert = new Alert(Alert.AlertType.INFORMATION);
 		ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
@@ -133,31 +110,8 @@ public class SettingsController {
 								});
 	}
 
-	private boolean isPortValid(int port) {
-		try {
-			ServerSocket testSocket = new ServerSocket(port);
-			testSocket.close();
-			return true;
-		}
-		catch (IOException e) {
-			return false;
-		}
-	}
-
 	public static SettingsController getInstance() {
 		return instance;
-	}
-
-	public TextArea getTokenArea() {
-		return tokenArea;
-	}
-
-	public Label getTimeRemainingLabel() {
-		return timeRemainingLabel;
-	}
-
-	public ComboBox<String> getLanguageComboBox() {
-		return languageComboBox;
 	}
 	public boolean isSettingsChanged() {
 		return isSettingsChanged;

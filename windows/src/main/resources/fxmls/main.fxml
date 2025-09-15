@@ -12,6 +12,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.tonylimps.liberreach.windows.controllers.MainController">
@@ -89,7 +90,12 @@
                                         </HBox>
                                         <HBox VBox.vgrow="ALWAYS">
                                             <children>
-                                                <ListView fx:id="filesList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onMouseClicked="#onFilesListViewClick" HBox.hgrow="ALWAYS" />
+                                    <StackPane prefHeight="150.0" prefWidth="200.0" HBox.hgrow="ALWAYS">
+                                       <children>
+                                                      <ListView fx:id="pathsListView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onMouseClicked="#onPathsListViewClick" />
+                                          <Label fx:id="pathsListViewLabel" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
+                                       </children>
+                                    </StackPane>
                                                 <ScrollBar orientation="VERTICAL" HBox.hgrow="NEVER" />
                                             </children>
                                         </HBox>
@@ -99,7 +105,7 @@
                         </SplitPane>
                         <VBox maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">
                             <children>
-                                <Button fx:id="downloadButton" mnemonicParsing="false" text="%main.button.download" />
+                                <Button fx:id="downloadButton" mnemonicParsing="false" onAction="#onDownloadButtonAction" text="%main.button.download" />
                                 <Button fx:id="uploadButton" mnemonicParsing="false" text="%main.button.upload" />
                             </children>
                         </VBox>

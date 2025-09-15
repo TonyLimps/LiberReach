@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.tonylimps.liberreach.core.Core;
+import org.tonylimps.liberreach.core.CustomPath;
 import org.tonylimps.liberreach.core.Profile;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
 import org.tonylimps.liberreach.core.threads.UpdateThread;
@@ -17,6 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /*
  * 这个线程用于更新UI
+ * 逻辑层和交互层的桥梁
  */
 
 public class WindowsUpdateThread extends UpdateThread {
@@ -24,7 +26,6 @@ public class WindowsUpdateThread extends UpdateThread {
 	private final Logger logger = LogManager.getLogger(getClass());
 
 	public WindowsUpdateThread(ExceptionManager exceptionManager, AtomicBoolean running, Profile profile) {
-		this.needToFlushToken = new AtomicBoolean(true);
 		this.exceptionManager = exceptionManager;
 		this.running = running;
 		this.profile = profile;
@@ -48,25 +49,22 @@ public class WindowsUpdateThread extends UpdateThread {
 	}
 
 	@Override
-	public void setFilesList(List<String> filesList, List<String> foldersList, List<String> errs) {
-		MainController.getInstance().setFiles(filesList);
-		MainController.getInstance().setFolders(foldersList);
-		MainController.getInstance().setErrs(errs);
-		MainController.getInstance().updateFilesListview();
+	public void setPaths(List<CustomPath> paths) {
+		MainController.getInstance().setPaths(paths);
+		MainController.getInstance().updatePathsListview();
 	}
 
-
 	private void updateDevicesLists(){
-		MainController mainController = MainController.getInstance();
-		mainController.updateDevicesLists();
+		MainController.getInstance().updateDevicesLists();
 	}
 
 	private void updateTokenText(){
 		SettingsController settingsController = SettingsController.getInstance();
-		if (needToFlushToken.get()) {
-			settingsController.getTokenArea().setText(Main.getTokenThread().getToken().getValue());
-			needToFlushToken.set(false);
+		String originalToken = settingsController.tokenArea.getText();
+		String newToken = Main.getTokenThread().getToken().getValue();
+		if(!originalToken.equals(newToken)){
+			settingsController.tokenArea.setText(newToken);
 		}
-		settingsController.getTimeRemainingLabel().setText(String.valueOf(Main.getTokenThread().getTimeRemaining()));
+		settingsController.timeRemainingLabel.setText(String.valueOf(Main.getTokenThread().getTimeRemaining()));
 	}
 }

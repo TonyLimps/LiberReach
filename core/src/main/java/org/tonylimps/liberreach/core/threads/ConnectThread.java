@@ -61,7 +61,7 @@ public class ConnectThread extends Thread {
 	@Override
 	public void run() {
 		try {
-			serverSocket = new ServerSocket(profile.getPort());
+			serverSocket = new ServerSocket(Integer.parseInt(Core.getConfig("defaultPort")));
 			while (running.get()) {
 				// 不断接收套接字，并分配授权设备线程
 				// 根据规范，授权设备会主动连接查看设备

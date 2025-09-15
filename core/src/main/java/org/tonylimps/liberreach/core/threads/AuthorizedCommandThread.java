@@ -1,23 +1,23 @@
 package org.tonylimps.liberreach.core.threads;
 
 import com.alibaba.fastjson2.JSON;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tonylimps.liberreach.core.AuthorizedDevice;
 import org.tonylimps.liberreach.core.Core;
 import org.tonylimps.liberreach.core.CustomPath;
 import org.tonylimps.liberreach.core.Token;
 import org.tonylimps.liberreach.core.enums.CommandType;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
+import org.tonylimps.liberreach.core.managers.FileSender;
 import org.tonylimps.liberreach.core.managers.ProfileManager;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.*;
-import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import static org.tonylimps.liberreach.core.enums.CommandType.*;
 import static org.tonylimps.liberreach.core.enums.RequestResult.SUCCESS;
@@ -47,7 +47,7 @@ public class AuthorizedCommandThread extends CommandThread {
 			this.token = token;
 			this.bundle = bundle;
 			this.updateThread = updateThread;
-			this.address = new InetSocketAddress(socket.getInetAddress(),socket.getPort());
+			this.address = socket.getInetAddress();
 		}
 		catch (IOException e) {
 			logger.error(e);
@@ -67,10 +67,10 @@ public class AuthorizedCommandThread extends CommandThread {
 						"answerType", ADD.getCode(),
 						"name", profile.getDeviceName(),
 						"host", Core.getHostAddress(),
-						"port", profile.getPort().toString(),
+						"port", Core.getConfig("defaultPort"),
 						"content", SUCCESS.getCode()
 					));
-					profile.addAuthorizedDevice(new AuthorizedDevice(address.getAddress(), command.get("name")));
+					profile.addAuthorizedDevice(new AuthorizedDevice(address, command.get("name")));
 					profileManager.saveProfile();
 				}
 				else {
@@ -79,102 +79,80 @@ public class AuthorizedCommandThread extends CommandThread {
 						"type", ANSWER.getCode(),
 						"answerType", ADD.getCode(),
 						"host", Core.getHostAddress(),
-						"port", profile.getPort().toString(),
+						"port", Core.getConfig("defaultPort"),
 						"content", WRONGTOKEN.getCode()
 					));
 				}
 			}
 			case HEARTBEAT -> {
-				AuthorizedDevice device = profile.getAuthorizedDevices().values().stream()
-					.filter(d -> d.getAddress().equals(address.getAddress()))
-					.findFirst().orElse(null);
-				if(Objects.nonNull(device)){
-					send(Core.createCommand(
-						"type", ANSWER.getCode(),
-						"answerType", HEARTBEAT.getCode(),
-						"online", "true",
-						"isAuthorized", String.valueOf(device.isAuthorized())
-					));
-				}
+				boolean isAuthorized = isAuthorized();
+				send(Core.createCommand(
+					"type", ANSWER.getCode(),
+					"answerType", HEARTBEAT.getCode(),
+					"online", "true",
+					"isAuthorized", String.valueOf(isAuthorized)
+				));
 			}
 			case GETPATH -> {
-				AuthorizedDevice device = profile.getAuthorizedDevices().values().stream()
-					.filter(d -> d.getAddress().equals(address.getAddress()))
-					.findFirst().orElse(null);
-				if(Objects.nonNull(device)){
-					boolean isAuthorized = device.isAuthorized();
-					String unAuthorized = JSON.toJSONString(List.of(bundle.getString("main.notAuthorized")));
-					CustomPath path = new CustomPath(command.get("path"));
-					List<String> files;
-					List<String> folders;
-					List<String> errs;
-					boolean err = false;
-
-					if(path.isOnlyDeviceName()){
-						files = new ArrayList();
-						folders = Arrays.stream(File.listRoots())
-							.map(File::getAbsolutePath)
-							.toList();
-						errs = new ArrayList();
-					}
-					else{
-						try{
-							files = Files.list(Paths.get(path.getPath()))
-								.filter(Files::isRegularFile)
-								.map(f -> f.getFileName().toString())
-								.collect(Collectors.toList());
-							folders = Files.list(Paths.get(path.getPath()))
-								.filter(Files::isDirectory)
-								.map(f -> f.getFileName().toString())
-								.collect(Collectors.toList());
-							errs = new ArrayList();
-							if(folders.isEmpty() && files.isEmpty()){
-								err = true;
-								errs = List.of(bundle.getString("main.fileError.emptyDirectory"));
-							}
-						}
-						catch(Exception e){
-							err = true;
-							files = new ArrayList();
-							folders = new ArrayList();
-							String errName;
-							if(e instanceof NoSuchFileException){
-								errName = bundle.getString("main.fileError.noSuchFile");
-								errs = List.of(errName,e.getMessage());
-							}
-							else if(e instanceof NotDirectoryException){
-								errName = bundle.getString("main.fileError.notDirectory");
-								errs = List.of(errName,e.getMessage());
-							}
-							else if(e instanceof AccessDeniedException || e instanceof SecurityException){
-								errName = bundle.getString("main.fileError.accessDenied");
-								errs = List.of(errName,e.getMessage());
-							}
-							else{
-								errs = List.of(e.getMessage());
-							}
-						}
-					}
-					send(Core.createCommand(
-						"type", ANSWER.getCode(),
-						"answerType", GETPATH.getCode(),
-						"folders", isAuthorized
-							? JSON.toJSONString(folders)
-							: unAuthorized,
-						"files", isAuthorized
-							? JSON.toJSONString(files)
-							: unAuthorized,
-						"err", String.valueOf(err),
-						"errs", JSON.toJSONString(errs)
-					));
+				if(!isAuthorized()){
+					return;
 				}
+				CustomPath customPath = new CustomPath(command.get("path"));
+				List<CustomPath> paths;
+				boolean err = false;
+				IOException exception = null;
+				if(customPath.isOnlyDeviceName()){
+					paths = Arrays.stream(File.listRoots())
+						.map(file -> new CustomPath("",file.toPath()))
+						.toList();
+				}
+				else{
+					Path path = customPath.getPath();
+					try{
+						paths = Files.list(path)
+							.map(p -> new CustomPath("",p))
+							.toList();
+					}
+					catch(IOException e){
+						err = true;
+						paths = List.of();
+						exception = e;
+						logger.error(e);
+					}
+				}
+				send(Core.createCommand(
+					"type", ANSWER.getCode(),
+					"answerType", GETPATH.getCode(),
+					"paths", JSON.toJSONString(paths),
+					"err", String.valueOf(err),
+					"exception", exception == null
+						? ""
+						: JSON.toJSONString(List.of(exception))
+				));
 			}
 			case DOWNLOAD -> {
+				if(!isAuthorized()){
+					return;
+				}
 				CustomPath customPath = new CustomPath(command.get("path"));
-				String path = customPath.getPath();
-
+				Path path = customPath.getPath();
+				int port = Integer.parseInt(command.get("port"));
+				File file = path.toFile();
+				FileSender fileSender = new FileSender(file, address, port);
+				fileSender.createFile();
+				fileSender.connect();
+				fileSender.sendFile();
 			}
 		}
 	}
 
+	private boolean isAuthorized() {
+		AuthorizedDevice device = profile.getAuthorizedDevices().values().stream()
+			.filter(d -> d.getAddress().equals(address))
+			.findFirst().orElse(null);
+		if(Objects.nonNull(device)){
+			return device.isAuthorized();
+		}
+		return false;
+	}
 }

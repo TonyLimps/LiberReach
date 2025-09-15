@@ -6,7 +6,6 @@ import org.tonylimps.liberreach.core.threads.AuthorizedCommandThread;
 import org.tonylimps.liberreach.core.threads.ViewableCommandThread;
 
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Objects;
@@ -59,17 +58,17 @@ public class Profile {
 
 	private String deviceName;
 	private Locale locale;
-	private Integer port;
+	private String defaultDownloadPath;
 
 	private HashMap<String, AuthorizedDevice> authorizedDevices;
 	private HashMap<String, ViewableDevice> viewableDevices;
 
-	public Profile(String deviceName, Locale locale, Integer port) {
+	public Profile(String deviceName, Locale locale) {
 		authorizedDevices = new HashMap<>();
 		viewableDevices = new HashMap<>();
+		defaultDownloadPath = Core.getConfig("defaultDownloadPath");
 		this.deviceName = deviceName;
 		this.locale = locale;
-		this.port = port;
 	}
 
 	public static Profile fromJSON(String json) {
@@ -84,7 +83,7 @@ public class Profile {
 		});
 		profile.getViewableDevices().values().forEach(device -> {
 			try {
-				device.setAddress(new InetSocketAddress(device.getHost(), device.getPort()));
+				device.setAddress(InetAddress.getByName(device.getHost()));
 			}
 			catch (Exception e) {
 				throw new JSONException(e.getMessage());
@@ -96,8 +95,7 @@ public class Profile {
 	public static Profile getEmptyProfile(String deviceName) {
 		return new Profile(
 			deviceName,
-			Locale.getDefault(),
-			Integer.parseInt(Core.getConfig("defaultPort"))
+			Locale.getDefault()
 		);
 	}
 
@@ -135,14 +133,6 @@ public class Profile {
 
 	public void setViewableDevices(HashMap<String, ViewableDevice> viewableDevices) {
 		this.viewableDevices = viewableDevices;
-	}
-
-	public Integer getPort() {
-		return port;
-	}
-
-	public void setPort(Integer port) {
-		this.port = port;
 	}
 
 	public void addAuthorizedDevice(AuthorizedDevice device) {
@@ -184,4 +174,11 @@ public class Profile {
 		viewableDevices.remove(name);
 	}
 
+	public String getDefaultDownloadPath() {
+		return defaultDownloadPath;
+	}
+
+	public void setDefaultDownloadPath(String defaultDownloadPath) {
+		this.defaultDownloadPath = defaultDownloadPath;
+	}
 }

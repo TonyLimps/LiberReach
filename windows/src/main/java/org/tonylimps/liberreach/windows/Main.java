@@ -7,8 +7,6 @@ import org.apache.logging.log4j.Logger;
 import org.tonylimps.liberreach.core.threads.ConnectThread;
 import org.tonylimps.liberreach.core.threads.HeartBeatThread;
 import org.tonylimps.liberreach.core.threads.TokenThread;
-import org.tonylimps.liberreach.windows.annotations.SingleFocusHandler;
-import org.tonylimps.liberreach.windows.controllers.MainController;
 import org.tonylimps.liberreach.windows.managers.WindowManager;
 import org.tonylimps.liberreach.windows.managers.WindowsExceptionManager;
 import org.tonylimps.liberreach.windows.managers.WindowsProfileManager;
@@ -43,7 +41,8 @@ public class Main extends Application {
 
 	public static void main(String[] args) {
 		logger.info("Program started.");
-		running = new AtomicBoolean(true);
+		running = new AtomicBoolean(false);
+		running.set(true);
 		exceptionManager = new WindowsExceptionManager();
 		profileManager = new WindowsProfileManager(exceptionManager);
 		bundleManager = new WindowsResourceBundleManager(exceptionManager, profileManager.getProfile());

@@ -1,24 +1,24 @@
 package org.tonylimps.liberreach.windows.controllers;
 
 import javafx.application.Platform;
-import javafx.stage.Stage;
-import org.tonylimps.liberreach.core.Core;
-import org.tonylimps.liberreach.core.ViewableDevice;
-import org.tonylimps.liberreach.core.enums.RequestResult;
-import org.tonylimps.liberreach.windows.Main;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.tonylimps.liberreach.core.Core;
+import org.tonylimps.liberreach.core.ViewableDevice;
+import org.tonylimps.liberreach.core.enums.RequestResult;
+import org.tonylimps.liberreach.windows.Main;
 import org.tonylimps.liberreach.windows.managers.WindowManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.ResourceBundle;
@@ -55,17 +55,13 @@ public class AddController {
 
 		// 先给设备发送添加请求，如果令牌对了再让对面的用户同意
 		// 中途出现错误视为设备不在线
-		String addressString = addressField.getText();
-		InetSocketAddress address;
-		String host;
-		int port;
+		String host = addressField.getText();
+		InetAddress address;
 		try{
-			host = addressString.split(":")[0];
-			port = Integer.parseInt(addressString.split(":")[1]);
-			address = new InetSocketAddress(host, port);
+			address = InetAddress.getByName(host);
 		}
 		catch (Exception e){
-			logger.error("Parse address {} failed.", addressString, e);
+			logger.error("Parse address {} failed.", host, e);
 			Main.getExceptionManager().throwException(e);
 			return;
 		}
@@ -73,6 +69,7 @@ public class AddController {
 		String token = tokenArea.getText();
 		int soTimeout = Integer.parseInt(Core.getConfig("soTimeout"));
 		RequestResult result;
+		int port = Integer.parseInt(Core.getConfig("defaultPort"));
 		try(Socket socket = new Socket(host, port)){
 			logger.info("Connected to {}", address);
 
@@ -81,6 +78,7 @@ public class AddController {
 			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			String command = Core.createCommand("type", ADD.getCode(), "token", token, "name", Main.getProfileManager().getProfile().getDeviceName());
 			out.println(command);
+
 			logger.info("Sent to {} :\n{}", address, command);
 			try{
 				HashMap<String,String> answer = Core.parseCommand(in.readLine());

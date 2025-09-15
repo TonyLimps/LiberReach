@@ -1,15 +1,15 @@
 package org.tonylimps.liberreach.windows.managers;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.tonylimps.liberreach.core.Core;
-import org.tonylimps.liberreach.windows.Main;
-import org.tonylimps.liberreach.windows.controllers.ExceptionDialogController;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.tonylimps.liberreach.core.Core;
+import org.tonylimps.liberreach.windows.Main;
+import org.tonylimps.liberreach.windows.controllers.ExceptionDialogController;
 
 import java.util.ResourceBundle;
 

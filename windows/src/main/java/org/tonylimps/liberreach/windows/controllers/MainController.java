@@ -10,6 +10,7 @@ import javafx.scene.input.MouseEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.tonylimps.liberreach.core.*;
+import org.tonylimps.liberreach.core.managers.FileReceiver;
 import org.tonylimps.liberreach.core.threads.ViewableCommandThread;
 import org.tonylimps.liberreach.windows.Main;
 import org.tonylimps.liberreach.windows.annotations.FixedWidth;
@@ -18,10 +19,16 @@ import org.tonylimps.liberreach.windows.annotations.SingleFocus;
 import org.tonylimps.liberreach.windows.annotations.SingleFocusHandler;
 import org.tonylimps.liberreach.windows.managers.WindowManager;
 
+import java.io.File;
 import java.net.UnknownHostException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
+import java.util.ResourceBundle;
 
+import static org.tonylimps.liberreach.core.enums.CommandType.DOWNLOAD;
 import static org.tonylimps.liberreach.core.enums.CommandType.GETPATH;
 
 public class MainController {
@@ -53,13 +60,12 @@ public class MainController {
 	@FXML @SingleFocus public Button backButton;
 	@FXML @SingleFocus public TextField pathField;
 	@FXML @SingleFocus public Button flushButton;
-	@FXML @SingleFocus public ListView<String> filesList;
+	@FXML @SingleFocus public ListView<CustomPath> pathsListView;
+	@FXML @SingleFocus public Label pathsListViewLabel;
 	@FXML @SingleFocus public Button downloadButton;
 	@FXML @SingleFocus public Button uploadButton;
 	private CustomPath currentPath = new CustomPath("");
-	private List<String> files = new ArrayList<>();
-	private List<String> folders = new ArrayList<>();
-	private List<String> errs = new ArrayList<>();
+	private List<CustomPath> paths;
 	public static MainController getInstance() {
 		return instance;
 	}
@@ -72,10 +78,10 @@ public class MainController {
 
 		try {
 			nameLabel.setText(bundle.getString("main.label.deviceName") + " " + profile.getDeviceName());
-			addressField.setText(Core.getHostAddress() + ":" + profile.getPort());
+			addressField.setText(Core.getHostAddress());
 		}
 		catch (UnknownHostException e) {
-			addressField.setText("UnknownHostException");
+			addressField.setText(e.getMessage());
 			logger.error(e);
 			Main.getExceptionManager().throwException(e);
 		}
@@ -126,11 +132,13 @@ public class MainController {
 			if(Objects.isNull(device))return;
 			ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
 			if(!device.isAuthorized()){
-				setErrs(List.of(bundle.getString("main.fileError.accessDenied")));
+				Exception exception = new Exception(bundle.getString("main.fileError.accessDenied"));
+				Main.getExceptionManager().throwException(exception);
 				return;
 			}
 			if(!device.isOnline()){
-				setErrs(List.of(bundle.getString("main.fileError.notOnline")));
+				Exception exception = new Exception(bundle.getString("main.fileError.notOnline"));
+				Main.getExceptionManager().throwException(exception);
 				return;
 			}
 			currentPath = new CustomPath(name + "::");
@@ -143,13 +151,12 @@ public class MainController {
 		Main.getProfileManager().saveProfile();
 	}
 	@FXML
-	private void onFilesListViewClick(MouseEvent event) {
+	private void onPathsListViewClick(MouseEvent event) {
 		if(event.getClickCount() == 2) {
-			String folderName = filesList.getSelectionModel().getSelectedItem();
-			if(folders.contains(folderName)) {
-				CustomPath newPath = new CustomPath(currentPath);
-				newPath.enter(folderName);
-				setCurrentPath(newPath);
+			CustomPath path = pathsListView.getSelectionModel().getSelectedItem();
+			String name = path.getFileName();
+			if(paths.contains(path)) {
+				setCurrentPath(currentPath.enter(name));
 			}
 		}
 	}
@@ -161,9 +168,7 @@ public class MainController {
 	}
 	@FXML
 	private void onBackButtonAction() {
-		CustomPath newPath = new CustomPath(currentPath);
-		newPath.back();
-		setCurrentPath(newPath);
+		setCurrentPath(currentPath.back());
 	}
 
 	@FXML
@@ -180,6 +185,13 @@ public class MainController {
 	@FXML
 	private void onAddButtonAction() {
 		WindowManager.show("add");
+	}
+
+	@FXML
+	private void onDownloadButtonAction() {
+		String fileName = pathsListView.getSelectionModel().getSelectedItem().getFileName();
+		Path targetPath = Paths.get(Main.getProfileManager().getProfile().getDefaultDownloadPath());
+		downloadFile(currentPath.enter(fileName), targetPath);
 	}
 
 	public void updateDevicesLists() {
@@ -256,61 +268,33 @@ public class MainController {
 		});
 	}
 
-	public void setFiles(List<String> files) {
-		this.files = files;
-	}
-
-	public void setFolders(List<String> folders) {
-		this.folders = folders;
-	}
-
-	public void setErrs(List<String> errs) {
-		files = List.of();
-		folders = List.of();
-		this.errs = errs;
-		updateFilesListview();
-	}
-
-	public void updateFilesListview() {
-		List<String> filesAndFolders = new ArrayList<>();
-		if(!folders.isEmpty()) {
-			filesAndFolders.addAll(folders);
-		}
-		if(!files.isEmpty()) {
-			filesAndFolders.addAll(files);
-		}
-		if(!errs.isEmpty()) {
-			filesAndFolders.addAll(errs);
-		}
-		List<String> finalFilesAndFolders = filesAndFolders.stream()
-			.filter(file -> !file.isEmpty())
-			.collect(Collectors.toList());
-		List<String> oldFilesAndFolders = filesList.getItems();
-		if(finalFilesAndFolders.equals(oldFilesAndFolders)) {
-			return;
-		}
+	public void updatePathsListview() {
 		Platform.runLater(() -> {
-			filesList.setItems(FXCollections.observableArrayList(finalFilesAndFolders));
-			filesList.setCellFactory(param -> new ListCell<>() {
+			pathsListView.setItems(FXCollections.observableArrayList(paths));
+			pathsListView.setCellFactory(param -> new ListCell<>() {
 				@Override
-				protected void updateItem(String name, boolean empty) {
-					super.updateItem(name, empty);
-					setText(name);
+				protected void updateItem(CustomPath path, boolean empty) {
+
+					if (empty || path == null){
+						setText(null);
+						setStyle(null);
+						return;
+					}
+
+					super.updateItem(path, empty);
+					setText(path.getFileName());
 					String fileColor = Core.getConfig("fileColor");
 					String folderColor = Core.getConfig("folderColor");
-					String errColor = Core.getConfig("errColor");
-					if(Objects.isNull(name))return;
-					if (files.contains(name)) {
-						setStyle("-fx-text-fill: " + fileColor + ";");
-					}
-					else if (folders.contains(name)) {
+
+					if (path.isDirectory()) {
 						setStyle("-fx-text-fill: " + folderColor + ";");
 					}
-					else if (errs.contains(name)) {
-						setStyle("-fx-text-fill: " + errColor + ";");
+					else {
+						setStyle("-fx-text-fill: " + fileColor + ";");
 					}
 				}
 			});
+			showPathsListView();
 		});
 	}
 
@@ -328,30 +312,19 @@ public class MainController {
 			String deviceName = newPath.getDeviceName();
 			ViewableDevice device = Main.getProfileManager().getProfile().getViewableDevices().get(deviceName);
 			if(Objects.isNull(device)) {
-				pathField.setText(currentPath.toString());
+				setCurrentPath(currentPath);
 				return;
 			}
 			ViewableCommandThread commandThread = device.getCommandThread();
 			if(Objects.isNull(commandThread)) {
-				pathField.setText(currentPath.toString());
+				setCurrentPath(currentPath);
 				return;
 			}
 			String command = Core.createCommand(
 				"type", GETPATH.getCode(),
 				"path", newPath.toString());
 			ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
-			Platform.runLater(() -> {
-				filesList.setCellFactory(param -> new ListCell<>() {
-					@Override
-					protected void updateItem(String name, boolean empty) {
-						super.updateItem(name, empty);
-						setText(name);
-						String fileColor = Core.getConfig("fileColor");
-						setStyle("-fx-text-fill: " + fileColor + ";");
-					}
-				});
-				filesList.setItems(FXCollections.observableList(List.of(bundle.getString("main.wait"))));
-			});
+			setPathsListViewMessage(bundle.getString("main.wait"));
 			commandThread.send(command);
 			pathField.setText(newPath.toString());
 			currentPath.setFullPath(newPath);
@@ -362,4 +335,60 @@ public class MainController {
 		}
 	}
 
+	public void setPaths(List<CustomPath> paths) {
+		this.paths = paths;
+	}
+
+	public void setPathsListViewMessage(String message) {
+		String color = Core.getConfig("messageColor");
+		Platform.runLater(() -> {
+			pathsListViewLabel.setText(message);
+			pathsListViewLabel.setStyle("-fx-text-fill: "+color+";");
+		});
+		showPathsListViewLabel();
+	}
+
+	public void setPathsListViewLabelError(Exception e) {
+		String stackTrace = Core.getExceptionStackTrace(e);
+		String color = Core.getConfig("errColor");
+		Platform.runLater(() -> {
+			pathsListViewLabel.setStyle("-fx-text-fill: "+color+";");
+			pathsListViewLabel.setText(stackTrace);
+		});
+		showPathsListViewLabel();
+	}
+
+	public void showPathsListView() {
+		Platform.runLater(() -> {
+			pathsListView.setVisible(true);
+			pathsListViewLabel.setVisible(false);
+		});
+	}
+
+	public void showPathsListViewLabel() {
+		Platform.runLater(() -> {
+			pathsListView.setVisible(false);
+			pathsListViewLabel.setVisible(true);
+		});
+	}
+
+	private void downloadFile(CustomPath path, Path targetPath) {
+		String deviceName = path.getDeviceName();
+		ViewableDevice device = Main.getProfileManager().getProfile().getViewableDevices().get(deviceName);
+		ViewableCommandThread commandThread = device.getCommandThread();
+
+		File file = targetPath.toFile();
+		FileReceiver fr = new FileReceiver(device.getAddress(), file);
+		fr.createFile();
+		fr.createServerSocket();
+		int port = fr.getPort();
+		commandThread.send(Core.createCommand(
+							   "type", DOWNLOAD.getCode(),
+							   "path", path.toString(),
+							   "port", String.valueOf(port),
+							   "hashCode", String.valueOf(file.hashCode())
+						   )
+		);
+		fr.receiveFile();
+	}
 }

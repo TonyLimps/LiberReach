@@ -1,12 +1,12 @@
 package org.tonylimps.liberreach.core.threads;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tonylimps.liberreach.core.Core;
 import org.tonylimps.liberreach.core.Profile;
 import org.tonylimps.liberreach.core.Token;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
 import org.tonylimps.liberreach.core.managers.ProfileManager;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -64,6 +64,7 @@ public class HeartBeatThread extends Thread {
 									   updateThread
 								   );
 								   commandThread.start();
+								   device.setCommandThread(commandThread);
 							   }
 							   commandThread.send(Core.createCommand("type", HEARTBEAT.getCode()));
 						   }
