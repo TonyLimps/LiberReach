@@ -95,7 +95,7 @@ public class Core{
         return random+time;
     }
     // 命名重名设备
-    public static String rename(String name, Set<String> names){
+    public static String rename(String name, List<String> names){
 		if(!names.contains(name)){
 			return name;
 		}

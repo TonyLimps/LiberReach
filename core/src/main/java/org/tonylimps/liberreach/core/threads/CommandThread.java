@@ -41,7 +41,7 @@ public class CommandThread extends Thread{
 		while (running.get()) {
 			try {
 				String commandString = in.readLine();
-				if(Objects.isNull(commandString)){
+				if(commandString == null){
 					break;
 				}
 				if( !commandString.contains("\"type\":\"" + HEARTBEAT.getCode() +"\"") && !commandString.contains("\"answerType\":\"" + HEARTBEAT.getCode() +"\"") ){

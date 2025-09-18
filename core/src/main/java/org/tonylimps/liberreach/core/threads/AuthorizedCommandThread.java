@@ -9,7 +9,7 @@ import org.tonylimps.liberreach.core.CustomPath;
 import org.tonylimps.liberreach.core.Token;
 import org.tonylimps.liberreach.core.enums.CommandType;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
-import org.tonylimps.liberreach.core.managers.FileSender;
+import org.tonylimps.liberreach.core.FileSender;
 import org.tonylimps.liberreach.core.managers.ProfileManager;
 
 import java.io.*;
@@ -141,7 +141,7 @@ public class AuthorizedCommandThread extends CommandThread {
 				FileSender fileSender = new FileSender(file, address, port);
 				fileSender.createFile();
 				fileSender.connect();
-				fileSender.sendFile();
+				fileSender.start();
 			}
 		}
 	}
@@ -150,7 +150,7 @@ public class AuthorizedCommandThread extends CommandThread {
 		AuthorizedDevice device = profile.getAuthorizedDevices().values().stream()
 			.filter(d -> d.getAddress().equals(address))
 			.findFirst().orElse(null);
-		if(Objects.nonNull(device)){
+		if(device != null){
 			return device.isAuthorized();
 		}
 		return false;

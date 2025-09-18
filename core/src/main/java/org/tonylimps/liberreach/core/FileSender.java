@@ -1,8 +1,7 @@
-package org.tonylimps.liberreach.core.managers;
+package org.tonylimps.liberreach.core;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.tonylimps.liberreach.core.Core;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -80,6 +79,10 @@ public class FileSender {
 		}
 	}
 
+	public void start(){
+		new Thread(this::sendFile).start();
+	}
+
 	public void sendFile(){
 		try {
 			// 文件大小
@@ -100,22 +103,21 @@ public class FileSender {
 				dos.flush();
 				boolean check = dis.readBoolean();
 				if(check){
-					i++;
 					long usedTimeSeconds = (System.currentTimeMillis() - startTime)/1000;
 					progress = (double)i / (double)totalPieces;
-					bytesPerSecond = size / usedTimeSeconds;
+					bytesPerSecond = usedTimeSeconds == 0
+						? 0
+						: size / usedTimeSeconds;
 					logger.info("Uploading {} Progress: {}/{} Speed: {}", file.getName(), i, totalPieces , bytesPerSecond);
+					i += 1;
 				}
 			}
 			socket.close();
 			fi.close();
+			logger.info("Upload {} success.", file.getName());
 		}
 		catch (Exception e) {
 			logger.error("Error sending file.", e);
 		}
-	}
-
-	public int getPort() {
-		return port;
 	}
 }

@@ -1,13 +1,14 @@
-package org.tonylimps.liberreach.core.managers;
+package org.tonylimps.liberreach.core;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.tonylimps.liberreach.core.Core;
 
 import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+
 /**
  * 文件传输协议: <br>
  *
@@ -45,10 +46,10 @@ public class FileReceiver {
 	private double progress;
 	private long bytesPerSecond;
 
-	public FileReceiver(InetAddress address, File file) {
+	public FileReceiver(InetAddress address, File file, int hashCode) {
 		this.file = file;
 		this.address = address;
-		this.hashCode = file.hashCode();
+		this.hashCode = hashCode;
 		pieceSize = Integer.parseInt(Core.getConfig("filePieceSize"));
 	}
 
@@ -56,18 +57,7 @@ public class FileReceiver {
 		try{
 			serverSocket = new ServerSocket(0);
 			port = serverSocket.getLocalPort();
-			socket = serverSocket.accept();
-			dos = new DataOutputStream(socket.getOutputStream());
-			dis = new DataInputStream(socket.getInputStream());
-			int hashCode = dis.readInt();
-			if(hashCode == this.hashCode){
-				dos.writeBoolean(true);
-				return true;
-			}
-			else{
-				dos.writeBoolean(false);
-				return false;
-			}
+			return true;
 		}
 		catch(IOException e){
 			logger.error("Connect file sender failed.",e);
@@ -77,17 +67,37 @@ public class FileReceiver {
 
 	public boolean createFile(){
 		try{
+			File parentDir = file.getParentFile();
+			if (parentDir != null && !parentDir.exists()) {
+				parentDir.mkdirs();
+			}
+
+			fo = new FileOutputStream(file, false); // false表示覆盖模式
 			fo = new FileOutputStream(file);
 			return true;
 		}
-		catch(FileNotFoundException e){
-			logger.error("File not found.",e);
+		catch(IOException e){
+			logger.error("Create file failed.",e);
 			return false;
 		}
 	}
 
-	public void receiveFile() {
+	public void start() {
+		new Thread(this::receiveFile).start();
+	}
+
+	private void receiveFile() {
 		try{
+			socket = serverSocket.accept();
+			dos = new DataOutputStream(socket.getOutputStream());
+			dis = new DataInputStream(socket.getInputStream());
+			int hashCode = dis.readInt();
+			if(hashCode == this.hashCode){
+				dos.writeBoolean(true);
+			}
+			else{
+				dos.writeBoolean(false);
+			}
 			totalSize = dis.readLong();
 			totalPieces = dis.readLong();
 			byte[] buffer = new byte[pieceSize];
@@ -103,10 +113,12 @@ public class FileReceiver {
 					dos.writeBoolean(true);
 					fo.write(buffer, 0, size);
 					progress = i / (double)totalPieces;
-					i += 1;
 					long usedTimeSeconds = (System.currentTimeMillis() - startTime)/1000;
-					bytesPerSecond = size / usedTimeSeconds;
+					bytesPerSecond = usedTimeSeconds == 0
+						? 0
+						: size / usedTimeSeconds;
 					logger.info("Downloading {} Progress: {}/{} Speed: {}", file.getName(), piece, totalPieces , bytesPerSecond);
+					i += 1;
 				}
 				else{
 					dos.writeBoolean(false);
@@ -114,6 +126,7 @@ public class FileReceiver {
 			}
 			socket.close();
 			fo.close();
+			logger.info("Download {} success.", file.getName());
 		}
 		catch(Exception e){
 			logger.error("Error receiving file.", e);

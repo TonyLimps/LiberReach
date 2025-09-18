@@ -3,11 +3,14 @@ package org.tonylimps.liberreach.windows.controllers;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import org.tonylimps.liberreach.core.Profile;
 import org.tonylimps.liberreach.windows.Main;
 import org.tonylimps.liberreach.windows.managers.WindowManager;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Objects;
@@ -36,32 +39,34 @@ public class SettingsController {
 	@FXML public Button applyButton;
 	@FXML public Button cancelButton;
 
+
+	public static SettingsController getInstance() {
+		return instance;
+	}
+
 	@FXML
 	private void initialize() {
 		instance = this;
-		isSettingsChanged = false;
-		applyButton.setDisable(true);
 		supportedResourceBundles = Main.getResourceBundleManager().getSupportedResourceBundles();
 		locale = Main.getProfileManager().getProfile().getLocale();
-		languageComboBox.setValue(supportedResourceBundles.get(locale).getString("language"));
 		lastSelectedLanguage = languageComboBox.getValue();
 		Profile profile = Main.getProfileManager().getProfile();
-		nameField.setText(profile.getDeviceName());
 		Platform.runLater(() -> {
 			Stage stage = WindowManager.getStage("settings");
 			stage.setOnCloseRequest(event -> {
-				if(SettingsController.getInstance().isSettingsChanged()){
-					SettingsController.getInstance().apply();
-				}
+				apply();
 				WindowManager.hide("settings");
 			});
 			stage.setTitle(Main.getResourceBundleManager().getBundle().getString("settings.title"));
 			languageComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
-				if (Objects.isNull(newVal) || newVal.isEmpty()) {
+				if (newVal == null || newVal.isEmpty()) {
 					languageComboBox.setValue(lastSelectedLanguage);
 				}
 				lastSelectedLanguage = languageComboBox.getValue();
 			});
+			nameField.setText(profile.getDeviceName());
+			languageComboBox.setValue(supportedResourceBundles.get(locale).getString("language"));
+			downloadPathField.setText(profile.getDefaultDownloadPath());
 		});
 	}
 
@@ -70,6 +75,7 @@ public class SettingsController {
 		Profile profile = Main.getProfileManager().getProfile();
 		profile.setLocale(locale);
 		profile.setDeviceName(nameField.getText());
+		profile.setDefaultDownloadPath(downloadPathField.getText());
 		Main.getProfileManager().saveProfile();
 		Alert alert = new Alert(Alert.AlertType.INFORMATION);
 		ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
@@ -96,8 +102,6 @@ public class SettingsController {
 											   locale = Locale.forLanguageTag(bundle.getString("locale"));
 										   }
 								);
-		isSettingsChanged = true;
-		applyButton.setDisable(false);
 	}
 
 	@FXML
@@ -110,13 +114,14 @@ public class SettingsController {
 								});
 	}
 
-	public static SettingsController getInstance() {
-		return instance;
-	}
-	public boolean isSettingsChanged() {
-		return isSettingsChanged;
-	}
-	public void setSettingsChanged(boolean isSettingsChanged) {
-		this.isSettingsChanged = isSettingsChanged;
+	@FXML
+	private void onBrowseButtonAction(){
+		Stage stage = WindowManager.getStage("settings");
+		DirectoryChooser chooser = new DirectoryChooser();
+		ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
+		chooser.setTitle(bundle.getString("settings.button.browse"));
+		File file = chooser.showDialog(stage);
+		String path = file.toPath().toAbsolutePath().toString();
+		downloadPathField.setText(path);
 	}
 }

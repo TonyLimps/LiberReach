@@ -61,7 +61,7 @@ public class CustomPath {
 		this.deviceName = deviceName;
 		this.path = path;
 		stringPath = path.toString();
-		if(path.toString().endsWith(":"+WIN32SPLIT) || path.toString().equals(SPLIT)){
+		if(isRootPath()){
 			directory = true;
 		}
 		else{
@@ -98,7 +98,7 @@ public class CustomPath {
 
 	public CustomPath back(){
 		CustomPath customPath = new CustomPath(this);
-		if(customPath.path instanceof EmptyPath){
+		if(customPath.path instanceof EmptyPath || isRootPath()){
 			customPath.path = new EmptyPath();
 		}
 		else{
@@ -144,6 +144,11 @@ public class CustomPath {
 
 	public boolean isDirectory() {
 		return directory;
+	}
+
+	@JSONField(serialize = false)
+	public boolean isRootPath() {
+		return path.toString().endsWith(":"+WIN32SPLIT) || path.toString().equals(SPLIT);
 	}
 
 	public void setDirectory(boolean directory) {

@@ -25,12 +25,11 @@ import java.io.IOException;
  *   <li>{@code Profile getProfile()} - 返回profile属性</li>
  * </ul>
  */
-public abstract class ProfileManager {
-	protected Profile profile;
-    public abstract String getUUID() throws IOException, InterruptedException;
-	protected abstract String getDeviceName();
-	protected  abstract void createNewProfile();
-	protected abstract void initProfile();
-	public abstract void saveProfile();
-	public abstract Profile getProfile();
+public interface ProfileManager {
+    String getUUID() throws IOException, InterruptedException;
+	String getDeviceName();
+	void createNewProfile();
+	void initProfile();
+	void saveProfile();
+	Profile getProfile();
 }

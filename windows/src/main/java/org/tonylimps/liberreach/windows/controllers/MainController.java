@@ -10,7 +10,7 @@ import javafx.scene.input.MouseEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.tonylimps.liberreach.core.*;
-import org.tonylimps.liberreach.core.managers.FileReceiver;
+import org.tonylimps.liberreach.core.FileReceiver;
 import org.tonylimps.liberreach.core.threads.ViewableCommandThread;
 import org.tonylimps.liberreach.windows.Main;
 import org.tonylimps.liberreach.windows.annotations.FixedWidth;
@@ -43,6 +43,7 @@ public class MainController {
 	@FXML @SingleFocus public TextField searchField;
 	@FXML @SingleFocus public Button searchButton;
 	*/
+	@FXML public ListView<CustomPath> pathsListView;
 
 	@FXML @SingleFocus public MenuItem fileSettingsMenuItem;
 	@FXML @SingleFocus public MenuItem fileExitMenuItem;
@@ -60,7 +61,6 @@ public class MainController {
 	@FXML @SingleFocus public Button backButton;
 	@FXML @SingleFocus public TextField pathField;
 	@FXML @SingleFocus public Button flushButton;
-	@FXML @SingleFocus public ListView<CustomPath> pathsListView;
 	@FXML @SingleFocus public Label pathsListViewLabel;
 	@FXML @SingleFocus public Button downloadButton;
 	@FXML @SingleFocus public Button uploadButton;
@@ -111,7 +111,7 @@ public class MainController {
 		AuthorizedDevice authorizedDevice = Main.getProfileManager().getProfile().getAuthorizedDevices().values().stream()
 			.filter(device -> device.getDeviceName().equals(name))
 			.findFirst().orElse(null);
-		if (Objects.isNull(authorizedDevice)) {
+		if (authorizedDevice == null) {
 			authorizationMenuItem.setDisable(true);
 			return;
 		}
@@ -127,9 +127,9 @@ public class MainController {
 	@FXML
 	private void onViewableListviewClick() {
 		String name = viewableList.getSelectionModel().getSelectedItem();
-		if(Objects.nonNull(name) && !name.isEmpty()){
+		if(name != null && !name.isEmpty()){
 			ViewableDevice device = Main.getProfileManager().getProfile().getViewableDevices().get(name);
-			if(Objects.isNull(device))return;
+			if(device == null)return;
 			ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
 			if(!device.isAuthorized()){
 				Exception exception = new Exception(bundle.getString("main.fileError.accessDenied"));
@@ -190,8 +190,11 @@ public class MainController {
 	@FXML
 	private void onDownloadButtonAction() {
 		String fileName = pathsListView.getSelectionModel().getSelectedItem().getFileName();
+		CustomPath path = currentPath.enter(fileName);
 		Path targetPath = Paths.get(Main.getProfileManager().getProfile().getDefaultDownloadPath());
-		downloadFile(currentPath.enter(fileName), targetPath);
+		String deviceName = currentPath.getDeviceName();
+		ViewableDevice device = Main.getProfileManager().getProfile().getViewableDevices().get(deviceName);
+		downloadFile(device, path, targetPath);
 	}
 
 	public void updateDevicesLists() {
@@ -275,13 +278,15 @@ public class MainController {
 				@Override
 				protected void updateItem(CustomPath path, boolean empty) {
 
+					super.updateItem(path, empty);
+
 					if (empty || path == null){
 						setText(null);
 						setStyle(null);
 						return;
 					}
 
-					super.updateItem(path, empty);
+
 					setText(path.getFileName());
 					String fileColor = Core.getConfig("fileColor");
 					String folderColor = Core.getConfig("folderColor");
@@ -311,12 +316,12 @@ public class MainController {
 		try{
 			String deviceName = newPath.getDeviceName();
 			ViewableDevice device = Main.getProfileManager().getProfile().getViewableDevices().get(deviceName);
-			if(Objects.isNull(device)) {
+			if(device == null) {
 				setCurrentPath(currentPath);
 				return;
 			}
 			ViewableCommandThread commandThread = device.getCommandThread();
-			if(Objects.isNull(commandThread)) {
+			if(commandThread == null) {
 				setCurrentPath(currentPath);
 				return;
 			}
@@ -372,13 +377,15 @@ public class MainController {
 		});
 	}
 
-	private void downloadFile(CustomPath path, Path targetPath) {
-		String deviceName = path.getDeviceName();
-		ViewableDevice device = Main.getProfileManager().getProfile().getViewableDevices().get(deviceName);
+	private void downloadFile(ViewableDevice device, CustomPath path, Path targetPath) {
 		ViewableCommandThread commandThread = device.getCommandThread();
-
-		File file = targetPath.toFile();
-		FileReceiver fr = new FileReceiver(device.getAddress(), file);
+		if(commandThread == null) {
+			return;
+		}
+		String fileName = path.getFileName();
+		Path targetFilePath = targetPath.resolve(fileName);
+		File file = targetFilePath.toFile();
+		FileReceiver fr = new FileReceiver(device.getAddress(), file, file.hashCode());
 		fr.createFile();
 		fr.createServerSocket();
 		int port = fr.getPort();
@@ -387,8 +394,7 @@ public class MainController {
 							   "path", path.toString(),
 							   "port", String.valueOf(port),
 							   "hashCode", String.valueOf(file.hashCode())
-						   )
-		);
-		fr.receiveFile();
+						   ));
+		fr.start();
 	}
 }

@@ -54,7 +54,7 @@ public class HeartBeatThread extends Thread {
 					   .forEach(device -> {
 						   ViewableCommandThread commandThread = device.getCommandThread();
 						   try {
-							   if (Objects.isNull(commandThread)) {
+							   if (commandThread == null) {
 								   commandThread = new ViewableCommandThread(
 									   device,
 									   exceptionManager,

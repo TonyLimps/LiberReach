@@ -1,4 +1,4 @@
-package org.tonylimps.liberreach.windows.managers;
+package org.tonylimps.liberreach.windows.controllers;
 
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -9,7 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.tonylimps.liberreach.core.Core;
 import org.tonylimps.liberreach.windows.Main;
-import org.tonylimps.liberreach.windows.controllers.ExceptionDialogController;
+import org.tonylimps.liberreach.windows.managers.WindowManager;
 
 import java.util.ResourceBundle;
 

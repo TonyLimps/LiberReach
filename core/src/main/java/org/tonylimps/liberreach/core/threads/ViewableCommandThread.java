@@ -3,19 +3,13 @@ package org.tonylimps.liberreach.core.threads;
 import com.alibaba.fastjson2.JSON;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.tonylimps.liberreach.core.Core;
-import org.tonylimps.liberreach.core.CustomPath;
-import org.tonylimps.liberreach.core.Token;
-import org.tonylimps.liberreach.core.ViewableDevice;
+import org.tonylimps.liberreach.core.*;
 import org.tonylimps.liberreach.core.enums.CommandType;
 import org.tonylimps.liberreach.core.enums.RequestResult;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
 import org.tonylimps.liberreach.core.managers.ProfileManager;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.List;
@@ -74,7 +68,7 @@ public class ViewableCommandThread extends CommandThread{
 				}
 				case HEARTBEAT -> {
 					ViewableDevice viewableDevice = profile.getViewableDevices().get(device.getRemarkName());
-					if(Objects.nonNull(viewableDevice)) {
+					if(viewableDevice != null) {
 						viewableDevice.setOnline(Boolean.parseBoolean(command.get("online")));
 						viewableDevice.setAuthorized(Boolean.parseBoolean(command.get("isAuthorized")));
 					}

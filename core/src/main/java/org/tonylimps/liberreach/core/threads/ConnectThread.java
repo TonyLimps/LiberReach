@@ -71,7 +71,7 @@ public class ConnectThread extends Thread {
 				authorizedCommandThread.start();
 				InetSocketAddress address = new InetSocketAddress(socket.getInetAddress().getHostAddress(), socket.getPort());
 				AuthorizedDevice device = authorizedDevices.get(address);
-				if (Objects.nonNull(device)) {
+				if (device != null) {
 					device.setCommandThread(authorizedCommandThread);
 				}
 			}

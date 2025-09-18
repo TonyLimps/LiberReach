@@ -6,10 +6,7 @@ import org.tonylimps.liberreach.core.threads.AuthorizedCommandThread;
 import org.tonylimps.liberreach.core.threads.ViewableCommandThread;
 
 import java.net.InetAddress;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -63,10 +60,10 @@ public class Profile {
 	private HashMap<String, AuthorizedDevice> authorizedDevices;
 	private HashMap<String, ViewableDevice> viewableDevices;
 
-	public Profile(String deviceName, Locale locale) {
+	public Profile(String deviceName, Locale locale, String defaultDownloadPath) {
 		authorizedDevices = new HashMap<>();
 		viewableDevices = new HashMap<>();
-		defaultDownloadPath = Core.getConfig("defaultDownloadPath");
+		this.defaultDownloadPath = defaultDownloadPath;
 		this.deviceName = deviceName;
 		this.locale = locale;
 	}
@@ -95,7 +92,8 @@ public class Profile {
 	public static Profile getEmptyProfile(String deviceName) {
 		return new Profile(
 			deviceName,
-			Locale.getDefault()
+			Locale.getDefault(),
+			Core.getConfig("defaultDownloadPath")
 		);
 	}
 
@@ -137,18 +135,18 @@ public class Profile {
 
 	public void addAuthorizedDevice(AuthorizedDevice device) {
 		String name = device.getDeviceName();
-		Set<String> names = authorizedDevices.values().stream()
+		List<String> names = authorizedDevices.values().stream()
 			.map(AuthorizedDevice::getRemarkName)
-			.collect(Collectors.toSet());
+			.collect(Collectors.toList());
 		device.setRemarkName(Core.rename(name, names));
 		authorizedDevices.put(device.getRemarkName(), device);
 	}
 
 	public void addViewableDevice(ViewableDevice device) {
 		String name = device.getDeviceName();
-		Set<String> names = viewableDevices.values().stream()
+		List<String> names = viewableDevices.values().stream()
 			.map(ViewableDevice::getRemarkName)
-			.collect(Collectors.toSet());
+			.collect(Collectors.toList());
 		device.setRemarkName(Core.rename(name, names));
 		viewableDevices.put(device.getRemarkName(), device);
 	}
@@ -157,7 +155,7 @@ public class Profile {
 		AuthorizedDevice device = authorizedDevices.get(name);
 		device.setAddress(null);
 		AuthorizedCommandThread commandThread = device.getCommandThread();
-		if(Objects.nonNull(commandThread)){
+		if(commandThread != null){
 			commandThread.close();
 			device.setCommandThread(null);
 		}
@@ -167,7 +165,7 @@ public class Profile {
 	public void removeViewableDevice(String name) {
 		ViewableDevice device = viewableDevices.get(name);
 		ViewableCommandThread commandThread = device.getCommandThread();
-		if(Objects.nonNull(commandThread)){
+		if(commandThread != null){
 			commandThread.close();
 			device.setCommandThread(null);
 		}

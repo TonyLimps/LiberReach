@@ -18,7 +18,7 @@ import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.stream.Stream;
 
-public class WindowsResourceBundleManager extends ResourceBundleManager {
+public class WindowsResourceBundleManager implements ResourceBundleManager {
 
 	private final Logger logger = LogManager.getLogger(getClass());
 	private ResourceBundle bundle;
