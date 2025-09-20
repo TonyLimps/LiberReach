@@ -6,11 +6,9 @@ import org.tonylimps.liberreach.core.threads.AuthorizedCommandThread;
 import org.tonylimps.liberreach.core.threads.ViewableCommandThread;
 
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -59,17 +57,17 @@ public class Profile {
 
 	private String deviceName;
 	private Locale locale;
-	private Integer port;
+	private String defaultDownloadPath;
 
 	private HashMap<String, AuthorizedDevice> authorizedDevices;
 	private HashMap<String, ViewableDevice> viewableDevices;
 
-	public Profile(String deviceName, Locale locale, Integer port) {
+	public Profile(String deviceName, Locale locale, String defaultDownloadPath) {
 		authorizedDevices = new HashMap<>();
 		viewableDevices = new HashMap<>();
+		this.defaultDownloadPath = defaultDownloadPath;
 		this.deviceName = deviceName;
 		this.locale = locale;
-		this.port = port;
 	}
 
 	public static Profile fromJSON(String json) {
@@ -84,7 +82,7 @@ public class Profile {
 		});
 		profile.getViewableDevices().values().forEach(device -> {
 			try {
-				device.setAddress(new InetSocketAddress(device.getHost(), device.getPort()));
+				device.setAddress(InetAddress.getByName(device.getHost()));
 			}
 			catch (Exception e) {
 				throw new JSONException(e.getMessage());
@@ -93,11 +91,27 @@ public class Profile {
 		return profile;
 	}
 
+	public HashMap<String, AuthorizedDevice> getAuthorizedDevices() {
+		return authorizedDevices;
+	}
+
+	public void setAuthorizedDevices(HashMap<String, AuthorizedDevice> authorizedDevices) {
+		this.authorizedDevices = authorizedDevices;
+	}
+
+	public HashMap<String, ViewableDevice> getViewableDevices() {
+		return viewableDevices;
+	}
+
+	public void setViewableDevices(HashMap<String, ViewableDevice> viewableDevices) {
+		this.viewableDevices = viewableDevices;
+	}
+
 	public static Profile getEmptyProfile(String deviceName) {
 		return new Profile(
 			deviceName,
 			Locale.getDefault(),
-			Integer.parseInt(Core.getConfig("defaultPort"))
+			Core.getConfig("defaultDownloadPath")
 		);
 	}
 
@@ -121,44 +135,20 @@ public class Profile {
 		this.locale = locale;
 	}
 
-	public HashMap<String, AuthorizedDevice> getAuthorizedDevices() {
-		return authorizedDevices;
-	}
-
-	public void setAuthorizedDevices(HashMap<String, AuthorizedDevice> authorizedDevices) {
-		this.authorizedDevices = authorizedDevices;
-	}
-
-	public HashMap<String, ViewableDevice> getViewableDevices() {
-		return viewableDevices;
-	}
-
-	public void setViewableDevices(HashMap<String, ViewableDevice> viewableDevices) {
-		this.viewableDevices = viewableDevices;
-	}
-
-	public Integer getPort() {
-		return port;
-	}
-
-	public void setPort(Integer port) {
-		this.port = port;
-	}
-
 	public void addAuthorizedDevice(AuthorizedDevice device) {
 		String name = device.getDeviceName();
-		Set<String> names = authorizedDevices.values().stream()
+		List<String> names = authorizedDevices.values().stream()
 			.map(AuthorizedDevice::getRemarkName)
-			.collect(Collectors.toSet());
+			.collect(Collectors.toList());
 		device.setRemarkName(Core.rename(name, names));
 		authorizedDevices.put(device.getRemarkName(), device);
 	}
 
 	public void addViewableDevice(ViewableDevice device) {
 		String name = device.getDeviceName();
-		Set<String> names = viewableDevices.values().stream()
+		List<String> names = viewableDevices.values().stream()
 			.map(ViewableDevice::getRemarkName)
-			.collect(Collectors.toSet());
+			.collect(Collectors.toList());
 		device.setRemarkName(Core.rename(name, names));
 		viewableDevices.put(device.getRemarkName(), device);
 	}
@@ -167,7 +157,7 @@ public class Profile {
 		AuthorizedDevice device = authorizedDevices.get(name);
 		device.setAddress(null);
 		AuthorizedCommandThread commandThread = device.getCommandThread();
-		if(Objects.nonNull(commandThread)){
+		if (commandThread != null) {
 			commandThread.close();
 			device.setCommandThread(null);
 		}
@@ -177,11 +167,17 @@ public class Profile {
 	public void removeViewableDevice(String name) {
 		ViewableDevice device = viewableDevices.get(name);
 		ViewableCommandThread commandThread = device.getCommandThread();
-		if(Objects.nonNull(commandThread)){
-			commandThread.close();
+		if (commandThread != null) {
 			device.setCommandThread(null);
 		}
 		viewableDevices.remove(name);
 	}
 
+	public String getDefaultDownloadPath() {
+		return defaultDownloadPath;
+	}
+
+	public void setDefaultDownloadPath(String defaultDownloadPath) {
+		this.defaultDownloadPath = defaultDownloadPath;
+	}
 }

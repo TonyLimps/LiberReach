@@ -3,14 +3,15 @@ package org.tonylimps.liberreach.core;
 import com.alibaba.fastjson2.annotation.JSONField;
 import org.tonylimps.liberreach.core.threads.ViewableCommandThread;
 
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class ViewableDevice {
 
 	private boolean isAuthorized;
 	private String remarkName;
 	private String deviceName;
-	private InetSocketAddress address;
+	private InetAddress address;
 	private String host;
 	private int port;
 
@@ -20,8 +21,8 @@ public class ViewableDevice {
 	public ViewableDevice() {
 	}
 
-	public ViewableDevice(String host, int port, String deviceName) {
-		address = new InetSocketAddress(host, port);
+	public ViewableDevice(String host, int port, String deviceName) throws UnknownHostException {
+		address = InetAddress.getByName(host);
 		this.host = host;
 		this.port = port;
 		this.remarkName = deviceName;
@@ -38,11 +39,11 @@ public class ViewableDevice {
 	}
 
 	@JSONField(serialize = false)
-	public InetSocketAddress getAddress() {
+	public InetAddress getAddress() {
 		return address;
 	}
 
-	public void setAddress(InetSocketAddress address) {
+	public void setAddress(InetAddress address) {
 		this.address = address;
 	}
 

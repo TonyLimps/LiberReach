@@ -12,6 +12,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.tonylimps.liberreach.windows.controllers.MainController">
@@ -24,11 +25,6 @@
                         <MenuItem fx:id="fileExitMenuItem" mnemonicParsing="false" onAction="#onFileExitButtonAction" text="%main.menu.file.exit" />
                     </items>
                 </Menu>
-                <Menu mnemonicParsing="false" text="%main.menu.help">
-                    <items>
-                        <MenuItem fx:id="helpAboutMenuItem" mnemonicParsing="false" text="%main.menu.help.about" />
-                    </items>
-                </Menu>
             </menus>
         </MenuBar>
         <SplitPane fx:id="mainSplitPane" dividerPositions="0.15" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="768.0" prefWidth="1360.0" VBox.vgrow="ALWAYS">
@@ -38,8 +34,10 @@
                         <VBox maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minWidth="-Infinity">
                             <children>
                                 <Label fx:id="nameLabel" alignment="TOP_LEFT" text="%main.label.deviceName" VBox.vgrow="ALWAYS" />
-                                <Label fx:id="addressLabel" text="%main.label.deviceAddress" VBox.vgrow="ALWAYS" />
+                                <Label text="%main.label.deviceAddress" VBox.vgrow="ALWAYS" />
                         <TextField fx:id="addressField" editable="false" promptText="Address" />
+                        <Label text="%main.label.IPv6Address" />
+                        <TextField fx:id="address6Field" editable="false" promptText="Address" />
                             </children>
                         </VBox>
                         <SplitPane dividerPositions="0.4772727272727273" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
@@ -47,7 +45,14 @@
                                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                                     <children>
                                         <Label fx:id="viewableLabel" text="%main.label.viewable" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                                        <ListView fx:id="viewableList" layoutX="17.0" layoutY="48.0" onMouseClicked="#onViewableListviewClick" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="15.0" />
+                                        <ListView fx:id="viewableList" layoutX="17.0" layoutY="48.0" onMouseClicked="#onViewableListviewClick" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="15.0">
+                                 <contextMenu>
+                                    <ContextMenu>
+                                      <items>
+                                        <MenuItem mnemonicParsing="false" onAction="#onRemoveViewableDeviceMenuItemAction" text="%main.contextMenu.remove" />
+                                      </items>
+                                    </ContextMenu>
+                                 </contextMenu></ListView>
                                         <ScrollBar fx:id="viewableScrollBar" layoutX="242.0" layoutY="45.0" orientation="VERTICAL" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="15.0" />
                                         <Button fx:id="addDeviceButton" layoutY="294.0" mnemonicParsing="false" onAction="#onAddButtonAction" prefHeight="23.0" prefWidth="228.0" text="%main.button.addDevice" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" />
                                     </children>
@@ -55,18 +60,17 @@
                                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                                     <children>
                                         <Label fx:id="authorizedLabel" layoutX="-1.0" text="%main.label.authorized" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                                        <ListView fx:id="authorizedList" layoutX="6.0" layoutY="50.0" onMouseClicked="#onAuthorizedListviewClick" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="15.0">
+                                        <ListView fx:id="authorizedList" layoutX="6.0" layoutY="50.0" onMouseClicked="#onAuthorizedListviewClick" prefHeight="352.0" prefWidth="186.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="15.0">
                                  <contextMenu>
                                     <ContextMenu>
                                       <items>
                                           <MenuItem fx:id="authorizationMenuItem" mnemonicParsing="false" onAction="#onAuthorizationMenuItemAction" text="Authorization" />
-                                          <MenuItem mnemonicParsing="false" onAction="#onRemoveMenuItemAction" text="%main.contextMenu.remove" />
+                                          <MenuItem mnemonicParsing="false" onAction="#onRemoveAuthorizedDeviceMenuItemAction" text="%main.contextMenu.remove" />
                                           <MenuItem mnemonicParsing="false" text="%main.contextMenu.cancel" />
                                       </items>
                                     </ContextMenu>
                                  </contextMenu></ListView>
                                         <ScrollBar fx:id="authorizedScrollBar" layoutX="249.0" layoutY="81.0" orientation="VERTICAL" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="15.0" />
-                                        <Button layoutX="60.0" layoutY="251.0" mnemonicParsing="false" text="%main.button.authorizationRequests" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" />
                                     </children>
                                 </AnchorPane>
                             </items>
@@ -76,7 +80,7 @@
 
                 <SplitPane dividerPositions="0.9360313315926893" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" orientation="VERTICAL" HBox.hgrow="ALWAYS">
                     <items>
-                        <SplitPane fx:id="mainSplitPane2" dividerPositions="0.815" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+                        <SplitPane fx:id="mainSplitPane2" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
                             <items>
                                 <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="100.0" VBox.vgrow="ALWAYS">
                                     <children>
@@ -89,23 +93,12 @@
                                         </HBox>
                                         <HBox VBox.vgrow="ALWAYS">
                                             <children>
-                                                <ListView fx:id="filesList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onMouseClicked="#onFilesListViewClick" HBox.hgrow="ALWAYS" />
-                                                <ScrollBar orientation="VERTICAL" HBox.hgrow="NEVER" />
-                                            </children>
-                                        </HBox>
-                                    </children>
-                                </VBox>
-                                <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="1.0">
-                                    <children>
-                                        <HBox alignment="CENTER_RIGHT">
-                                            <children>
-                                                <TextField fx:id="searchField" promptText="%main.textField.search" HBox.hgrow="ALWAYS" />
-                                                <Button fx:id="searchButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" text="%main.button.search" HBox.hgrow="NEVER" />
-                                            </children>
-                                        </HBox>
-                                        <HBox VBox.vgrow="ALWAYS">
-                                            <children>
-                                                <ListView maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
+                                    <StackPane prefHeight="150.0" prefWidth="200.0" HBox.hgrow="ALWAYS">
+                                       <children>
+                                                      <ListView fx:id="pathsListView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onMouseClicked="#onPathsListViewClick" />
+                                          <Label fx:id="pathsListViewLabel" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
+                                       </children>
+                                    </StackPane>
                                                 <ScrollBar orientation="VERTICAL" HBox.hgrow="NEVER" />
                                             </children>
                                         </HBox>
@@ -115,8 +108,7 @@
                         </SplitPane>
                         <VBox maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">
                             <children>
-                                <Button fx:id="downloadButton" mnemonicParsing="false" text="%main.button.download" />
-                                <Button fx:id="uploadButton" mnemonicParsing="false" text="%main.button.upload" />
+                                <Button fx:id="downloadButton" mnemonicParsing="false" onAction="#onDownloadButtonAction" text="%main.button.download" />
                             </children>
                         </VBox>
                     </items>

@@ -21,11 +21,12 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 
-public class WindowsProfileManager extends ProfileManager {
+public class WindowsProfileManager implements ProfileManager {
 
 	private final Logger logger = LogManager.getLogger(getClass());
 	private final WindowsExceptionManager exceptionManager;
 	private final String UUID;
+	private Profile profile;
 
 	public WindowsProfileManager(WindowsExceptionManager exceptionManager) {
 		try {
@@ -53,27 +54,7 @@ public class WindowsProfileManager extends ProfileManager {
 	}
 
 	@Override
-	public void saveProfile() {
-		try {
-			Path path = Paths.get("profile.dat");
-			String profileString = JSON.toJSONString(profile);
-			String encryptedString = Core.encrypt(profileString, UUID);
-			byte[] encryptedBytes = encryptedString.getBytes();
-			Files.write(path, encryptedBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-		}
-		catch (Exception e) {
-			logger.error(e);
-			exceptionManager.throwException(e);
-		}
-	}
-
-	@Override
-	protected String getDeviceName() {
-		return System.getenv("COMPUTERNAME");
-	}
-
-	@Override
-	protected void initProfile() {
+	public void initProfile() {
 		File profileFile = new File("profile.dat");
 		if (!profileFile.exists()) {
 			// 如果配置文件不存在就新建配置文件
@@ -111,7 +92,7 @@ public class WindowsProfileManager extends ProfileManager {
 	}
 
 	@Override
-	protected void createNewProfile() {
+	public void createNewProfile() {
 		try {
 			Path path = Paths.get("profile.dat");
 			// 创建一个新的配置并用本机机器码加密
@@ -119,6 +100,26 @@ public class WindowsProfileManager extends ProfileManager {
 			String encryptedString = Core.encrypt(emptyProfile.toJSONString(), UUID);
 			byte[] encryptedBytes = encryptedString.getBytes();
 			// 不存在则创建，存在则覆盖
+			Files.write(path, encryptedBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+		}
+		catch (Exception e) {
+			logger.error(e);
+			exceptionManager.throwException(e);
+		}
+	}
+
+	@Override
+	public String getDeviceName() {
+		return System.getenv("COMPUTERNAME");
+	}
+
+	@Override
+	public void saveProfile() {
+		try {
+			Path path = Paths.get("profile.dat");
+			String profileString = JSON.toJSONString(profile);
+			String encryptedString = Core.encrypt(profileString, UUID);
+			byte[] encryptedBytes = encryptedString.getBytes();
 			Files.write(path, encryptedBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 		}
 		catch (Exception e) {

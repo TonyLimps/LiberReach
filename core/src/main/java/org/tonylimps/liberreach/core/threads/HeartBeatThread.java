@@ -1,17 +1,16 @@
 package org.tonylimps.liberreach.core.threads;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tonylimps.liberreach.core.Core;
 import org.tonylimps.liberreach.core.Profile;
 import org.tonylimps.liberreach.core.Token;
-import org.tonylimps.liberreach.core.enums.CommandTypes;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
 import org.tonylimps.liberreach.core.managers.ProfileManager;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
-import java.net.InetSocketAddress;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.tonylimps.liberreach.core.enums.CommandType.HEARTBEAT;
 
 /*
  * 这是心跳线程，每隔一段时间向查看设备发送心跳命令
@@ -35,7 +34,8 @@ public class HeartBeatThread extends Thread {
 		ProfileManager profileManager,
 		Token token,
 		UpdateThread updateThread
-	){
+	)
+	{
 		this.profileManager = profileManager;
 		this.profile = profileManager.getProfile();
 		this.running = running;
@@ -51,27 +51,27 @@ public class HeartBeatThread extends Thread {
 			try {
 				// 每隔一段时间遍历可查看设备，发送心跳命令，send方法会自动更新在线状态
 				profile.getViewableDevices().values()
-					   .forEach(device -> {
-						   ViewableCommandThread commandThread = device.getCommandThread();
-						   try {
-							   if (Objects.isNull(commandThread)) {
-								   InetSocketAddress address = device.getAddress();
-								   commandThread = new ViewableCommandThread(
-									   device,
-									   exceptionManager,
-									   profileManager,
-									   running,
-									   token,
-									   updateThread
-								   );
-								   commandThread.start();
-							   }
-							   commandThread.send(Core.createCommand("type", CommandTypes.HEARTBEAT));
-						   }
-						   catch (Exception e) {
-							   commandThread.error(e);
-						   }
-					   });
+					.forEach(device -> {
+						ViewableCommandThread commandThread = device.getCommandThread();
+						try {
+							if (commandThread == null) {
+								commandThread = new ViewableCommandThread(
+									device,
+									exceptionManager,
+									profileManager,
+									running,
+									token,
+									updateThread
+								);
+								commandThread.start();
+								device.setCommandThread(commandThread);
+							}
+							commandThread.send(Core.createCommand("type", HEARTBEAT));
+						}
+						catch (Exception e) {
+							commandThread.error(e);
+						}
+					});
 				Thread.sleep(heartBeatDelayMillis);
 			}
 			catch (InterruptedException e) {
@@ -80,9 +80,9 @@ public class HeartBeatThread extends Thread {
 		}
 	}
 
-	public void close(){
+	public void close() {
 		interrupt();
-		try{
+		try {
 			join();
 		}
 		catch (InterruptedException e) {

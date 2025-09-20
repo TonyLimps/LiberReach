@@ -1,11 +1,11 @@
 package org.tonylimps.liberreach.windows.managers;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tonylimps.liberreach.core.Core;
 import org.tonylimps.liberreach.core.Profile;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
 import org.tonylimps.liberreach.core.managers.ResourceBundleManager;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -18,7 +18,7 @@ import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.stream.Stream;
 
-public class WindowsResourceBundleManager extends ResourceBundleManager {
+public class WindowsResourceBundleManager implements ResourceBundleManager {
 
 	private final Logger logger = LogManager.getLogger(getClass());
 	private ResourceBundle bundle;
@@ -28,30 +28,6 @@ public class WindowsResourceBundleManager extends ResourceBundleManager {
 	public WindowsResourceBundleManager(ExceptionManager exceptionManager, Profile profile) {
 		this.exceptionManager = exceptionManager;
 		this.profile = profile;
-	}
-
-	public HashMap<Locale, ResourceBundle> getSupportedResourceBundles() {
-		HashMap<Locale, ResourceBundle> result = new HashMap<>();
-		try (Stream<Path> paths = Files.walk(Paths.get(Core.getConfig("languageBundlesPath")))) {
-			paths.map(path -> path.toString())
-				 .filter(path -> path.endsWith(".properties"))
-				 .forEach(path -> {
-					 try {
-						 ResourceBundle bundle = new PropertyResourceBundle(new FileInputStream(path));
-						 Locale locale = Locale.forLanguageTag(bundle.getString("locale"));
-						 result.put(locale, bundle);
-					 }
-					 catch (IOException e) {
-logger.error(e);
-exceptionManager.throwException(e);
-					 }
-				 });
-		}
-		catch (IOException e) {
-logger.error(e);
-exceptionManager.throwException(e);
-		}
-		return result;
 	}
 
 	public ResourceBundle getBundle() {
@@ -77,5 +53,29 @@ exceptionManager.throwException(e);
 			logger.info("Loaded resource bundle.");
 		}
 		return bundle;
+	}
+
+	public HashMap<Locale, ResourceBundle> getSupportedResourceBundles() {
+		HashMap<Locale, ResourceBundle> result = new HashMap<>();
+		try (Stream<Path> paths = Files.walk(Paths.get(Core.getConfig("languageBundlesPath")))) {
+			paths.map(path -> path.toString())
+				.filter(path -> path.endsWith(".properties"))
+				.forEach(path -> {
+					try {
+						ResourceBundle bundle = new PropertyResourceBundle(new FileInputStream(path));
+						Locale locale = Locale.forLanguageTag(bundle.getString("locale"));
+						result.put(locale, bundle);
+					}
+					catch (IOException e) {
+						logger.error(e);
+						exceptionManager.throwException(e);
+					}
+				});
+		}
+		catch (IOException e) {
+			logger.error(e);
+			exceptionManager.throwException(e);
+		}
+		return result;
 	}
 }

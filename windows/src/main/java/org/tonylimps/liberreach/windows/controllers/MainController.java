@@ -6,59 +6,71 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.tonylimps.liberreach.core.*;
-import org.tonylimps.liberreach.core.enums.CommandTypes;
 import org.tonylimps.liberreach.core.threads.ViewableCommandThread;
 import org.tonylimps.liberreach.windows.Main;
+import org.tonylimps.liberreach.windows.annotations.FixedWidth;
+import org.tonylimps.liberreach.windows.annotations.FixedWidthHandler;
 import org.tonylimps.liberreach.windows.annotations.SingleFocus;
+import org.tonylimps.liberreach.windows.annotations.SingleFocusHandler;
 import org.tonylimps.liberreach.windows.managers.WindowManager;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.ResourceBundle;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.tonylimps.liberreach.core.enums.CommandType.DOWNLOAD;
+import static org.tonylimps.liberreach.core.enums.CommandType.GETPATH;
 
 public class MainController {
 
 	private static MainController instance;
 	private final Logger logger = LogManager.getLogger(MainController.class);
-	@FXML @SingleFocus public SplitPane mainSplitPane;
-	@FXML @SingleFocus public SplitPane mainSplitPane2;
+	@FXML @SingleFocus @FixedWidth public SplitPane mainSplitPane;
+
+	// TODO:
+	// @FXML @SingleFocus public SplitPane mainSplitPane2;
+	// @FXML @SingleFocus public TextField searchField;
+	// @FXML @SingleFocus public Button searchButton;
+
+
+	@FXML public ListView<CustomPath> pathsListView;
+
 	@FXML @SingleFocus public MenuItem fileSettingsMenuItem;
 	@FXML @SingleFocus public MenuItem fileExitMenuItem;
-	@FXML @SingleFocus public MenuItem helpAboutMenuItem;
+	// TODO: @FXML @SingleFocus public MenuItem helpAboutMenuItem;
 	@FXML @SingleFocus(focused = true) public Label nameLabel;
 	@FXML @SingleFocus public TextField addressField;
+	@FXML @SingleFocus public TextField address6Field;
 	@FXML @SingleFocus public Label authorizedLabel;
-	@FXML @SingleFocus(group = "1") public ListView<String> authorizedList;
+	@FXML @SingleFocus(group = "1") public ListView<AuthorizedDevice> authorizedList;
 	@FXML @SingleFocus public MenuItem authorizationMenuItem;
 	@FXML @SingleFocus public ScrollBar authorizedScrollBar;
 	@FXML @SingleFocus public Label viewableLabel;
-	@FXML @SingleFocus(group = "1") public ListView<String> viewableList;
+	@FXML @SingleFocus(group = "1") public ListView<ViewableDevice> viewableList;
 	@FXML @SingleFocus public ScrollBar viewableScrollBar;
 	@FXML @SingleFocus public Button addDeviceButton;
 	@FXML @SingleFocus public Button backButton;
 	@FXML @SingleFocus public TextField pathField;
 	@FXML @SingleFocus public Button flushButton;
-	@FXML @SingleFocus public TextField searchField;
-	@FXML @SingleFocus public Button searchButton;
-	@FXML @SingleFocus public ListView<String> filesList;
+	@FXML @SingleFocus public Label pathsListViewLabel;
 	@FXML @SingleFocus public Button downloadButton;
-	@FXML @SingleFocus public Button uploadButton;
-	private double fixedWidth;
-	private double fixedWidth2;
-	private boolean ignoreWidthChange = false;
-	private boolean ignoreWidthChange2 = false;
+	// TODO: @FXML @SingleFocus public Button uploadButton;
+	// TODO: @FXML @SingleFocus public Button requestRecords;
+
 	private CustomPath currentPath = new CustomPath("");
-	private boolean waiting;
-	private List<String> files = new ArrayList<>();
-	private List<String> folders = new ArrayList<>();
-	private List<String> errs = new ArrayList<>();
-	public static MainController getInstance() {
-		return instance;
-	}
+	private List<CustomPath> paths;
 
 	@FXML
 	private void initialize() {
@@ -68,10 +80,12 @@ public class MainController {
 
 		try {
 			nameLabel.setText(bundle.getString("main.label.deviceName") + " " + profile.getDeviceName());
-			addressField.setText(Core.getHostAddress() + ":" + profile.getPort());
+			addressField.setText(Core.getHostAddress());
+			String address6 = Core.getHostAddress6();
+			address6Field.setText(address6 == null ? bundle.getString("main.label.haveNotIPv6Address") : address6);
 		}
 		catch (UnknownHostException e) {
-			addressField.setText("UnknownHostException");
+			addressField.setText(e.getMessage());
 			logger.error(e);
 			Main.getExceptionManager().throwException(e);
 		}
@@ -79,60 +93,32 @@ public class MainController {
 		Platform.runLater(() -> {
 			WindowManager.getStage("main").setTitle(bundle.getString("main.title"));
 			WindowManager.getStage("main").setOnCloseRequest(event -> Main.exit(0));
-			initSplitPane();
+			SingleFocusHandler singleFocusHandler = new SingleFocusHandler();
+			singleFocusHandler.handle(getInstance());
+			FixedWidthHandler fixedWidthHandler = new FixedWidthHandler();
+			fixedWidthHandler.handle(getInstance());
 		});
 	}
 
-	private void initSplitPane() {
-		fixedWidth = mainSplitPane.getDividerPositions()[0] * mainSplitPane.getWidth();
-		mainSplitPane.getDividers().get(0).positionProperty().addListener((obs, oldVal, newVal) -> {
-			if (!ignoreWidthChange) {
-				fixedWidth = newVal.doubleValue() * mainSplitPane.getWidth();
-			}
-		});
-
-		mainSplitPane.widthProperty().addListener((obs, oldVal, newVal) -> {
-			if (newVal.doubleValue() != oldVal.doubleValue()) {
-				ignoreWidthChange = true;
-				double newPosition = fixedWidth / newVal.doubleValue();
-				mainSplitPane.setDividerPosition(0, newPosition);
-				ignoreWidthChange = false;
-			}
-		});
-
-		fixedWidth2 = (1 - mainSplitPane2.getDividerPositions()[0]) * mainSplitPane2.getWidth();
-		mainSplitPane2.getDividers().get(0).positionProperty().addListener((obs, oldVal, newVal) -> {
-			if (!ignoreWidthChange2) {
-				fixedWidth2 = (1 - newVal.doubleValue()) * mainSplitPane2.getWidth();
-			}
-		});
-
-		mainSplitPane2.widthProperty().addListener((obs, oldVal, newVal) -> {
-			if (newVal.doubleValue() != oldVal.doubleValue()) {
-				ignoreWidthChange2 = true;
-				double newPosition = fixedWidth2 / newVal.doubleValue();
-				mainSplitPane2.setDividerPosition(0, 1 - newPosition);
-				ignoreWidthChange2 = false;
-			}
-		});
+	public static MainController getInstance() {
+		return instance;
 	}
 
 	@FXML
 	private void onFileSettingsButtonAction() {
 		WindowManager.show("settings");
 	}
+
 	@FXML
 	private void onFileExitButtonAction() {
 		Main.exit(0);
 	}
+
 	@FXML
 	private void onAuthorizedListviewClick() {
-		String name = authorizedList.getSelectionModel().getSelectedItem();
+		AuthorizedDevice authorizedDevice = authorizedList.getSelectionModel().getSelectedItem();
 		ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
-		AuthorizedDevice authorizedDevice = Main.getProfileManager().getProfile().getAuthorizedDevices().values().stream()
-			.filter(device -> device.getDeviceName().equals(name))
-			.findFirst().orElse(null);
-		if (Objects.isNull(authorizedDevice)) {
+		if (authorizedDevice == null) {
 			authorizationMenuItem.setDisable(true);
 			return;
 		}
@@ -145,85 +131,102 @@ public class MainController {
 			authorizationMenuItem.setText(bundle.getString("main.contextMenu.giveAuthorization"));
 		}
 	}
+
 	@FXML
-	private void onViewableListviewClick() {
-		String name = viewableList.getSelectionModel().getSelectedItem();
-		if(Objects.nonNull(name) && !name.isEmpty()){
-			ViewableDevice device = Main.getProfileManager().getProfile().getViewableDevices().get(name);
-			if(Objects.isNull(device))return;
+	private void onViewableListviewClick(MouseEvent event) {
+		if(event.getButton() == MouseButton.PRIMARY) {
+			ViewableDevice viewableDevice = viewableList.getSelectionModel().getSelectedItem();
+			if (viewableDevice == null) {
+				return;
+			}
 			ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
-			if(!device.isAuthorized()){
-				setErrs(List.of(bundle.getString("main.fileError.accessDenied")));
+			if (!viewableDevice.isAuthorized()) {
+				Exception exception = new Exception(bundle.getString("main.fileError.accessDenied"));
+				Main.getExceptionManager().throwException(exception);
 				return;
 			}
-			if(!device.isOnline()){
-				setErrs(List.of(bundle.getString("main.fileError.notOnline")));
+			if (!viewableDevice.isOnline()) {
+				Exception exception = new Exception(bundle.getString("main.fileError.notOnline"));
+				Main.getExceptionManager().throwException(exception);
 				return;
 			}
-			currentPath = new CustomPath(name + "::");
+			currentPath = new CustomPath(viewableDevice.getRemarkName() + "::");
 			setCurrentPath(currentPath);
 		}
 	}
+
 	@FXML
-	private void onRemoveMenuItemAction() {
-		Main.getProfileManager().getProfile().removeAuthorizedDevice(authorizedList.getSelectionModel().getSelectedItem());
+	private void onRemoveAuthorizedDeviceMenuItemAction() {
+		Main.getProfileManager().getProfile().removeAuthorizedDevice(authorizedList.getSelectionModel().getSelectedItem().getRemarkName());
 		Main.getProfileManager().saveProfile();
 	}
+
 	@FXML
-	private void onFilesListViewClick(MouseEvent event) {
-		if(event.getClickCount() == 2) {
-			String folderName = filesList.getSelectionModel().getSelectedItem();
-			if(folders.contains(folderName)) {
-				CustomPath newPath = new CustomPath(currentPath);
-				newPath.enter(folderName);
-				setCurrentPath(newPath);
+	private void onRemoveViewableDeviceMenuItemAction(){
+		Main.getProfileManager().getProfile().removeViewableDevice(viewableList.getSelectionModel().getSelectedItem().getRemarkName());
+		Main.getProfileManager().saveProfile();
+	}
+
+	@FXML
+	private void onPathsListViewClick(MouseEvent event) {
+		if (event.getClickCount() == 2) {
+			CustomPath path = pathsListView.getSelectionModel().getSelectedItem();
+			String name = path.getFileName();
+			if (paths.contains(path) && path.isDirectory()) {
+				setCurrentPath(currentPath.enter(name));
 			}
 		}
 	}
+
 	@FXML
 	private void onPathFieldPress(KeyEvent event) {
 		if (event.getCode() == KeyCode.ENTER) {
 			updateCurrentPath();
 		}
 	}
+
 	@FXML
 	private void onBackButtonAction() {
-		CustomPath newPath = new CustomPath(currentPath);
-		newPath.back();
-		setCurrentPath(newPath);
+		setCurrentPath(currentPath.back());
 	}
 
 	@FXML
 	private void onFlushButtonAction() {
 		updateCurrentPath();
 	}
+
 	@FXML
 	private void onAuthorizationMenuItemAction() {
-		String name = authorizedList.getSelectionModel().getSelectedItem();
-		AuthorizedDevice device = Main.getProfileManager().getProfile().getAuthorizedDevices().get(name);
+		AuthorizedDevice device = authorizedList.getSelectionModel().getSelectedItem();
 		device.setAuthorized(!device.isAuthorized());
 		Main.getProfileManager().saveProfile();
 	}
+
 	@FXML
 	private void onAddButtonAction() {
 		WindowManager.show("add");
 	}
 
-	public void updateDevicesLists() {
-		HashMap<String, ViewableDevice> viewableDevices = Main.getProfileManager().getProfile().getViewableDevices();
-		HashMap<String, AuthorizedDevice> authorizedDevices = Main.getProfileManager().getProfile().getAuthorizedDevices();
+	@FXML
+	private void onDownloadButtonAction() {
+		String fileName = pathsListView.getSelectionModel().getSelectedItem().getFileName();
+		CustomPath path = currentPath.enter(fileName);
+		Path targetPath = Paths.get(Main.getProfileManager().getProfile().getDefaultDownloadPath());
+		String deviceName = currentPath.getDeviceName();
+		ViewableDevice device = Main.getProfileManager().getProfile().getViewableDevices().get(deviceName);
+		Core.downloadFile(device, path, targetPath);
+	}
 
-		List<String> authorizedDeviceNames = authorizedDevices.values().stream()
-			.map(AuthorizedDevice::getRemarkName)
-			.toList();
-		List<String> viewableDeviceNames = viewableDevices.values().stream()
-			.map(ViewableDevice::getRemarkName)
-			.toList();
-		if(!authorizedDeviceNames.equals(authorizedList.getItems())){
-			authorizedList.setItems(FXCollections.observableList(authorizedDeviceNames));
+
+	public void updateDevicesLists() {
+		List<ViewableDevice> viewableDevices = Main.getProfileManager().getProfile().getViewableDevices().values().stream().toList();
+		List<AuthorizedDevice> authorizedDevices = Main.getProfileManager().getProfile().getAuthorizedDevices().values().stream().toList();
+
+		if (!viewableDevices.equals(viewableList.getItems())) {
+			viewableList.setItems(FXCollections.observableList(viewableDevices));
 		}
-		if(!viewableDeviceNames.equals(viewableList.getItems())){
-			viewableList.setItems(FXCollections.observableList(viewableDeviceNames));
+		if (!authorizedDevices.equals(authorizedList.getItems())) {
+			authorizedList.setItems(FXCollections.observableList(authorizedDevices));
 		}
 
 		String offlineColor = Core.getConfig("offlineColor");
@@ -232,19 +235,17 @@ public class MainController {
 
 		viewableList.setCellFactory(param -> new ListCell<>() {
 			@Override
-			protected void updateItem(String name, boolean empty) {
-				super.updateItem(name, empty);
+			protected void updateItem(ViewableDevice device, boolean empty) {
+				super.updateItem(device, empty);
 
-				ViewableDevice device = viewableDevices.get(name);
-
-				if (empty || name == null || device == null) {
+				if (empty || device == null) {
 					setText(null);
 					setGraphic(null);
 					setStyle("-fx-text-fill: " + offlineColor + ";");
 					return;
 				}
 
-				setText(name);
+				setText(device.getRemarkName());
 				if (device.isOnline()) {
 					if (device.isAuthorized()) {
 						setStyle("-fx-text-fill: " + authorizedColor + ";");
@@ -261,18 +262,17 @@ public class MainController {
 
 		authorizedList.setCellFactory(param -> new ListCell<>() {
 			@Override
-			protected void updateItem(String name, boolean empty) {
-				super.updateItem(name, empty);
+			protected void updateItem(AuthorizedDevice device, boolean empty) {
+				super.updateItem(device, empty);
 
-				AuthorizedDevice device = authorizedDevices.get(name);
 
-				if (empty || name == null || device == null) {
+				if (empty || device == null) {
 					setText(null);
 					setGraphic(null);
 					setStyle("-fx-text-fill: " + offlineColor + ";");
 					return;
 				}
-				setText(name);
+				setText(device.getRemarkName());
 				if (device.isAuthorized()) {
 					setStyle("-fx-text-fill: " + authorizedColor + ";");
 				}
@@ -283,66 +283,46 @@ public class MainController {
 		});
 	}
 
-	public void setFiles(List<String> files) {
-		this.files = files;
-	}
-
-	public void setFolders(List<String> folders) {
-		this.folders = folders;
-	}
-
-	public void setErrs(List<String> errs) {
-		files = List.of();
-		folders = List.of();
-		this.errs = errs;
-		updateFilesListview();
-	}
-
-	public void updateFilesListview() {
-		if(waiting)return;
-		List<String> filesAndFolders = new ArrayList<>();
-		if(!folders.isEmpty()) {
-			filesAndFolders.addAll(folders);
-		}
-		if(!files.isEmpty()) {
-			filesAndFolders.addAll(files);
-		}
-		if(!errs.isEmpty()) {
-			filesAndFolders.addAll(errs);
-		}
-		List<String> finalFilesAndFolders = filesAndFolders.stream()
-			.filter(file -> !file.isEmpty())
-			.collect(Collectors.toList());
-		List<String> oldFilesAndFolders = filesList.getItems();
-		if(finalFilesAndFolders.equals(oldFilesAndFolders)) {
-			return;
-		}
+	public void updatePathsListview() {
 		Platform.runLater(() -> {
-			filesList.setItems(FXCollections.observableArrayList(finalFilesAndFolders));
-			filesList.setCellFactory(param -> new ListCell<>() {
+			pathsListView.setItems(FXCollections.observableArrayList(paths));
+			pathsListView.setCellFactory(param -> new ListCell<>() {
 				@Override
-				protected void updateItem(String name, boolean empty) {
-					super.updateItem(name, empty);
-					setText(name);
+				protected void updateItem(CustomPath path, boolean empty) {
+
+					super.updateItem(path, empty);
+
+					if (empty || path == null) {
+						setText(null);
+						setStyle(null);
+						return;
+					}
+
+
+					setText(path.getFileName());
 					String fileColor = Core.getConfig("fileColor");
 					String folderColor = Core.getConfig("folderColor");
-					String errColor = Core.getConfig("errColor");
-					if(Objects.isNull(name))return;
-					if (files.contains(name)) {
-						setStyle("-fx-text-fill: " + fileColor + ";");
-					}
-					else if (folders.contains(name)) {
+
+					if (path.isDirectory()) {
 						setStyle("-fx-text-fill: " + folderColor + ";");
 					}
-					else if (errs.contains(name)) {
-						setStyle("-fx-text-fill: " + errColor + ";");
+					else {
+						setStyle("-fx-text-fill: " + fileColor + ";");
 					}
 				}
 			});
+			showPathsListView();
 		});
 	}
 
-	private void updateCurrentPath(){
+	public void showPathsListView() {
+		Platform.runLater(() -> {
+			pathsListView.setVisible(true);
+			pathsListViewLabel.setVisible(false);
+		});
+	}
+
+	private void updateCurrentPath() {
 		String fullPath = pathField.getText();
 		Platform.runLater(() -> {
 			pathField.setFocusTraversable(false);
@@ -352,34 +332,24 @@ public class MainController {
 	}
 
 	private void setCurrentPath(CustomPath newPath) {
-		try{
+		try {
 			String deviceName = newPath.getDeviceName();
 			ViewableDevice device = Main.getProfileManager().getProfile().getViewableDevices().get(deviceName);
-			if(Objects.isNull(device)) {
-				pathField.setText(currentPath.toString());
+			if (device == null) {
+				setCurrentPath(currentPath);
 				return;
 			}
 			ViewableCommandThread commandThread = device.getCommandThread();
-			if(Objects.isNull(commandThread)) {
-				pathField.setText(currentPath.toString());
+			if (commandThread == null) {
+				setCurrentPath(currentPath);
 				return;
 			}
 			String command = Core.createCommand(
-				"type",CommandTypes.GETPATH,
-				"path", newPath.toString());
+				"type", GETPATH,
+				"path", newPath.toString()
+			);
 			ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
-			Platform.runLater(() -> {
-				filesList.setCellFactory(param -> new ListCell<>() {
-					@Override
-					protected void updateItem(String name, boolean empty) {
-						super.updateItem(name, empty);
-						setText(name);
-						String fileColor = Core.getConfig("fileColor");
-						setStyle("-fx-text-fill: " + fileColor + ";");
-					}
-				});
-				filesList.setItems(FXCollections.observableList(List.of(bundle.getString("main.wait"))));
-			});
+			setPathsListViewMessage(bundle.getString("main.wait"));
 			commandThread.send(command);
 			pathField.setText(newPath.toString());
 			currentPath.setFullPath(newPath);
@@ -390,4 +360,33 @@ public class MainController {
 		}
 	}
 
+	public void setPaths(List<CustomPath> paths) {
+		this.paths = paths;
+	}
+
+	public void setPathsListViewMessage(String message) {
+		String color = Core.getConfig("messageColor");
+		Platform.runLater(() -> {
+			pathsListViewLabel.setText(message);
+			pathsListViewLabel.setStyle("-fx-text-fill: " + color + ";");
+		});
+		showPathsListViewLabel();
+	}
+
+	public void setPathsListViewLabelError(Exception e) {
+		String stackTrace = Core.getExceptionStackTrace(e);
+		String color = Core.getConfig("errColor");
+		Platform.runLater(() -> {
+			pathsListViewLabel.setStyle("-fx-text-fill: " + color + ";");
+			pathsListViewLabel.setText(stackTrace);
+		});
+		showPathsListViewLabel();
+	}
+
+	public void showPathsListViewLabel() {
+		Platform.runLater(() -> {
+			pathsListView.setVisible(false);
+			pathsListViewLabel.setVisible(true);
+		});
+	}
 }

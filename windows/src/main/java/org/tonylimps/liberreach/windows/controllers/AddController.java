@@ -1,28 +1,30 @@
 package org.tonylimps.liberreach.windows.controllers;
 
+import com.alibaba.fastjson2.JSON;
 import javafx.application.Platform;
-import javafx.stage.Stage;
-import org.tonylimps.liberreach.core.Core;
-import org.tonylimps.liberreach.core.ViewableDevice;
-import org.tonylimps.liberreach.core.enums.CommandTypes;
-import org.tonylimps.liberreach.core.enums.RequestResults;
-import org.tonylimps.liberreach.windows.Main;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.tonylimps.liberreach.core.Core;
+import org.tonylimps.liberreach.core.ViewableDevice;
+import org.tonylimps.liberreach.core.enums.RequestResult;
+import org.tonylimps.liberreach.windows.Main;
 import org.tonylimps.liberreach.windows.managers.WindowManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.ResourceBundle;
+
+import static org.tonylimps.liberreach.core.enums.CommandType.ADD;
 
 
 /*
@@ -49,85 +51,84 @@ public class AddController {
 			stage.setTitle(Main.getResourceBundleManager().getBundle().getString("add.title"));
 		});
 	}
+
 	@FXML
 	private void onAddButtonAction() {
 
 		// 先给设备发送添加请求，如果令牌对了再让对面的用户同意
 		// 中途出现错误视为设备不在线
-		String addressString = addressField.getText();
-		InetSocketAddress address;
-		String host;
-		int port;
-		try{
-			host = addressString.split(":")[0];
-			port = Integer.parseInt(addressString.split(":")[1]);
-			address = new InetSocketAddress(host, port);
+		String host = addressField.getText();
+		InetAddress address;
+		try {
+			address = InetAddress.getByName(host);
 		}
-		catch (Exception e){
-			logger.error("Parse address {} failed.", addressString, e);
+		catch (Exception e) {
+			logger.error("Parse address {} failed.", host, e);
 			Main.getExceptionManager().throwException(e);
 			return;
 		}
 
 		String token = tokenArea.getText();
 		int soTimeout = Integer.parseInt(Core.getConfig("soTimeout"));
-		String result;
-		try(Socket socket = new Socket(host, port)){
+		RequestResult result;
+		int port = Integer.parseInt(Core.getConfig("defaultPort"));
+		try (Socket socket = new Socket(host, port)) {
 			logger.info("Connected to {}", address);
 
 			socket.setSoTimeout(soTimeout);
 			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			String command = Core.createCommand("type", CommandTypes.ADD, "token", token, "name", Main.getProfileManager().getProfile().getDeviceName());
+			String command = Core.createCommand("type", ADD, "token", token, "name", Main.getProfileManager().getProfile().getDeviceName());
 			out.println(command);
+
 			logger.info("Sent to {} :\n{}", address, command);
-			try{
-				HashMap<String,String> answer = Core.parseCommand(in.readLine());
-				result = answer.get("content");
-				if(result.equals(RequestResults.SUCCESS)){
+			try {
+				HashMap<String, String> answer = JSON.parseObject(in.readLine(), HashMap.class);
+				result = RequestResult.fromString(answer.get("content"));
+				if (result.equals(RequestResult.SUCCESS)) {
 					String name = answer.get("name");
 					Main.getProfileManager().getProfile().addViewableDevice(new ViewableDevice(host, port, name));
 					Main.getProfileManager().saveProfile();
 				}
 			}
-			catch(Exception e){
-				result = RequestResults.TIMEOUT;
+			catch (Exception e) {
+				result = RequestResult.TIMEOUT;
 			}
 		}
-		catch(IOException e){
+		catch (IOException e) {
 			logger.error("Connect failed.");
 			logger.error(e);
-			result = RequestResults.OFFLINE;
+			result = RequestResult.OFFLINE;
 		}
 		Alert alert = getAlert(result);
 		alert.showAndWait();
 	}
 
-	private static Alert getAlert(String result) {
+	private static Alert getAlert(RequestResult result) {
 		Alert alert = null;
 		ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
-		switch(result){
-			case RequestResults.SUCCESS -> {
+		switch (result) {
+			case SUCCESS -> {
 				alert = new Alert(Alert.AlertType.INFORMATION);
 				alert.setTitle(bundle.getString("add.alert.success.title"));
 				alert.setContentText(bundle.getString("add.alert.success.content"));
 			}
-			case RequestResults.WRONGTOKEN -> {
+			case WRONGTOKEN -> {
 				alert = new Alert(Alert.AlertType.ERROR);
 				alert.setTitle(bundle.getString("add.alert.wrongToken.title"));
 				alert.setContentText(bundle.getString("add.alert.wrongToken.content"));
 			}
-			case RequestResults.TIMEOUT -> {
+			case TIMEOUT -> {
 				alert = new Alert(Alert.AlertType.ERROR);
 				alert.setTitle(bundle.getString("add.alert.timeout.title"));
 				alert.setContentText(bundle.getString("add.alert.timeout.content"));
 			}
-			case RequestResults.OFFLINE -> {
+			case OFFLINE -> {
 				alert = new Alert(Alert.AlertType.ERROR);
 				alert.setTitle(bundle.getString("add.alert.offline.title"));
 				alert.setContentText(bundle.getString("add.alert.offline.content"));
 			}
-			case RequestResults.TOOMANYREQUESTS -> {
+			case TOOMANYREQUESTS -> {
 				alert = new Alert(Alert.AlertType.ERROR);
 				alert.setTitle(bundle.getString("add.alert.tooManyRequests.title"));
 				alert.setContentText(bundle.getString("add.alert.tooManyRequests.content"));

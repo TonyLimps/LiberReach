@@ -1,23 +1,24 @@
 package org.tonylimps.liberreach.core.threads;
 
 import com.alibaba.fastjson2.JSON;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tonylimps.liberreach.core.Profile;
 import org.tonylimps.liberreach.core.Token;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
 import org.tonylimps.liberreach.core.managers.ProfileManager;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class CommandThread extends Thread{
+import static org.tonylimps.liberreach.core.enums.CommandType.HEARTBEAT;
+
+public class CommandThread extends Thread {
 
 	private final Logger logger = LogManager.getLogger(getClass());
 	protected AtomicBoolean running;
@@ -27,26 +28,26 @@ public class CommandThread extends Thread{
 	protected ResourceBundle bundle;
 	protected BufferedReader in;
 	protected PrintWriter out;
-	protected InetSocketAddress address;
+	protected InetAddress address;
 	protected ExceptionManager exceptionManager;
 	protected Token token;
 	protected UpdateThread updateThread;
 
-	public CommandThread(){}
+	public CommandThread() {
+	}
 
 	@Override
 	public void run() {
 		while (running.get()) {
 			try {
 				String commandString = in.readLine();
-				if(Objects.isNull(commandString)){
+				if (commandString == null) {
 					break;
 				}
-				if(! ( commandString.contains("\"type\":\"1\"") || commandString.contains("\"answerType\":\"1\"") )){
-					// 如果命令不是心跳命令就写入日志
+				if (!commandString.contains("\"type\":\"" + HEARTBEAT + "\"") && !commandString.contains("\"answerType\":\"" + HEARTBEAT + "\"")) {
 					logger.info("Received from {} :\n{}", address, commandString);
 				}
-				HashMap<String, String> command = JSON.parseObject(commandString, HashMap.class);
+				HashMap<String, Object> command = JSON.parseObject(commandString, HashMap.class);
 				exec(command);
 			}
 			catch (IOException e) {
@@ -56,15 +57,23 @@ public class CommandThread extends Thread{
 		}
 	}
 
-	protected void exec(HashMap<String, String> command) throws IOException {}
+	protected void exec(HashMap<String, Object> command) throws IOException {}
 
 	protected void error(Exception e) {
 		logger.error(e);
 	}
 
-	public void close(){
+	// 发送命令
+	public void send(String command) {
+		out.println(command);
+		if (!command.contains("\"type\":\"" + HEARTBEAT + "\"") && !command.contains("\"answerType\":\"" + HEARTBEAT + "\"")) {
+			logger.info("Sent to {}:\n{}", address, command);
+		}
+	}
+
+	public void close() {
 		interrupt();
-		try{
+		try {
 			join();
 		}
 		catch (InterruptedException e) {
@@ -72,5 +81,6 @@ public class CommandThread extends Thread{
 		}
 		logger.info("Command thread {} closed.", getName());
 	}
+
 }
 

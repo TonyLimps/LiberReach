@@ -1,24 +1,26 @@
 package org.tonylimps.liberreach.core.threads;
 
 import com.alibaba.fastjson2.JSON;
-import org.tonylimps.liberreach.core.AuthorizedDevice;
-import org.tonylimps.liberreach.core.Core;
-import org.tonylimps.liberreach.core.CustomPath;
-import org.tonylimps.liberreach.core.Token;
-import org.tonylimps.liberreach.core.enums.CommandTypes;
-import org.tonylimps.liberreach.core.enums.RequestResults;
-import org.tonylimps.liberreach.core.managers.ExceptionManager;
-import org.tonylimps.liberreach.core.managers.ProfileManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.tonylimps.liberreach.core.*;
+import org.tonylimps.liberreach.core.enums.CommandType;
+import org.tonylimps.liberreach.core.managers.ExceptionManager;
+import org.tonylimps.liberreach.core.managers.ProfileManager;
 
 import java.io.*;
-import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
+
+import static org.tonylimps.liberreach.core.enums.CommandType.*;
+import static org.tonylimps.liberreach.core.enums.RequestResult.SUCCESS;
+import static org.tonylimps.liberreach.core.enums.RequestResult.WRONGTOKEN;
 
 /*
  * 负责与授权设备通信的命令线程
@@ -44,7 +46,7 @@ public class AuthorizedCommandThread extends CommandThread {
 			this.token = token;
 			this.bundle = bundle;
 			this.updateThread = updateThread;
-			this.address = new InetSocketAddress(socket.getInetAddress(),socket.getPort());
+			this.address = socket.getInetAddress();
 		}
 		catch (IOException e) {
 			logger.error(e);
@@ -52,127 +54,104 @@ public class AuthorizedCommandThread extends CommandThread {
 		}
 	}
 	@Override
-	protected void exec(HashMap<String, String> command) throws IOException {
-		switch (command.get("type")) {
-			case CommandTypes.ADD -> {
+	protected void exec(HashMap<String, Object> command) throws IOException {
+		CommandType type = CommandType.valueOf((String)command.get("type"));
+		switch (type) {
+			case ADD -> {
 				// 添加设备请求
 				if (command.get("token").equals(token.getValue())) {
 					// 如果令牌正确，回应允许命令
-					answer(Core.createCommand(
-						"type", CommandTypes.ANSWER,
-						"answerType", CommandTypes.ADD,
+					send(Core.createCommand(
+						"type", ANSWER,
+						"answerType", ADD,
 						"name", profile.getDeviceName(),
 						"host", Core.getHostAddress(),
-						"port", profile.getPort().toString(),
-						"content", RequestResults.SUCCESS
+						"port", Core.getConfig("defaultPort"),
+						"content", SUCCESS
 					));
-					profile.addAuthorizedDevice(new AuthorizedDevice(address.getAddress(), command.get("name")));
+					profile.addAuthorizedDevice(new AuthorizedDevice(address, (String)command.get("name")));
 					profileManager.saveProfile();
 				}
 				else {
 					// 如果令牌错误，回应拒绝命令
-					answer(Core.createCommand(
-						"type", CommandTypes.ANSWER,
-						"answerType", CommandTypes.ADD,
+					send(Core.createCommand(
+						"type", ANSWER,
+						"answerType", ADD,
 						"host", Core.getHostAddress(),
-						"port", profile.getPort().toString(),
-						"content", RequestResults.WRONGTOKEN
+						"port", Core.getConfig("defaultPort"),
+						"content", WRONGTOKEN
 					));
 				}
 			}
-			case CommandTypes.HEARTBEAT -> {
-				AuthorizedDevice device = profile.getAuthorizedDevices().values().stream()
-					.filter(d -> d.getAddress().equals(address.getAddress()))
-					.findFirst().orElse(null);
-				if(Objects.nonNull(device)){
-					answer(Core.createCommand(
-						"type", CommandTypes.ANSWER,
-						"answerType", CommandTypes.HEARTBEAT,
-						"online", "true",
-						"isAuthorized", String.valueOf(device.isAuthorized())
-					));
-				}
+			case HEARTBEAT -> {
+				boolean isAuthorized = isAuthorized();
+				send(Core.createCommand(
+					"type", ANSWER,
+					"answerType", HEARTBEAT,
+					"online", true,
+					"authorized", isAuthorized
+				));
 			}
-			case CommandTypes.GETPATH -> {
-				AuthorizedDevice device = profile.getAuthorizedDevices().values().stream()
-					.filter(d -> d.getAddress().equals(address.getAddress()))
-					.findFirst().orElse(null);
-				if(Objects.nonNull(device)){
-					boolean isAuthorized = device.isAuthorized();
-					String unAuthorized = JSON.toJSONString(List.of(bundle.getString("main.notAuthorized")));
-					CustomPath path = new CustomPath(command.get("path"));
-					List<String> files;
-					List<String> folders;
-					List<String> errs;
-					boolean err = false;
-
-					if(path.isOnlyDeviceName()){
-						files = new ArrayList();
-						folders = Arrays.stream(File.listRoots())
-							.map(File::getAbsolutePath)
+			case GETPATH -> {
+				if(!isAuthorized()){
+					return;
+				}
+				CustomPath customPath = new CustomPath((String)command.get("path"));
+				List<CustomPath> paths;
+				boolean err = false;
+				IOException exception = null;
+				if(customPath.isOnlyDeviceName()){
+					paths = Arrays.stream(File.listRoots())
+						.map(file -> new CustomPath("",file.toPath()))
+						.toList();
+				}
+				else{
+					Path path = customPath.getPath();
+					try{
+						paths = Files.list(path)
+							.map(p -> new CustomPath("",p))
 							.toList();
-						errs = new ArrayList();
 					}
-					else{
-						try{
-							files = Files.list(Paths.get(path.getPath()))
-								.filter(Files::isRegularFile)
-								.map(f -> f.getFileName().toString())
-								.collect(Collectors.toList());
-							folders = Files.list(Paths.get(path.getPath()))
-								.filter(Files::isDirectory)
-								.map(f -> f.getFileName().toString())
-								.collect(Collectors.toList());
-							errs = new ArrayList();
-							if(folders.isEmpty() && files.isEmpty()){
-								err = true;
-								errs = List.of(bundle.getString("main.fileError.emptyDirectory"));
-							}
-						}
-						catch(Exception e){
-							err = true;
-							files = new ArrayList();
-							folders = new ArrayList();
-							String errName;
-							if(e instanceof NoSuchFileException){
-								errName = bundle.getString("main.fileError.noSuchFile");
-								errs = List.of(errName,e.getMessage());
-							}
-							else if(e instanceof NotDirectoryException){
-								errName = bundle.getString("main.fileError.notDirectory");
-								errs = List.of(errName,e.getMessage());
-							}
-							else if(e instanceof AccessDeniedException || e instanceof SecurityException){
-								errName = bundle.getString("main.fileError.accessDenied");
-								errs = List.of(errName,e.getMessage());
-							}
-							else{
-								errs = List.of(e.getMessage());
-							}
-						}
+					catch(IOException e){
+						err = true;
+						paths = List.of();
+						exception = e;
+						logger.error(e);
 					}
-					answer(Core.createCommand(
-						"type", CommandTypes.ANSWER,
-						"answerType", CommandTypes.GETPATH,
-						"folders", isAuthorized
-							? JSON.toJSONString(folders)
-							: unAuthorized,
-						"files", isAuthorized
-							? JSON.toJSONString(files)
-							: unAuthorized,
-						"err", String.valueOf(err),
-						"errs", JSON.toJSONString(errs)
-					));
 				}
+				send(Core.createCommand(
+					"type", ANSWER,
+					"answerType", GETPATH,
+					"paths", JSON.toJSONString(paths),
+					"err", err,
+					"exception", exception == null
+						? ""
+						: JSON.toJSONString(List.of(exception))
+				));
+			}
+			case DOWNLOAD -> {
+				if(!isAuthorized()){
+					return;
+				}
+				CustomPath customPath = new CustomPath((String)command.get("path"));
+				Path path = customPath.getPath();
+				int port = (int)command.get("port");
+				File file = path.toFile();
+				FileSender fileSender = new FileSender(file, address, port, exceptionManager);
+				fileSender.createFile();
+				fileSender.connect();
+				fileSender.start();
 			}
 		}
 	}
 
-	public void answer(String command) {
-		if(!command.contains("\"answerType\":\"1\"")){
-			// 不是心跳命令就写进日志
-			logger.info("Answered to {} :\n{}", address.toString(), command);
+	private boolean isAuthorized() {
+		AuthorizedDevice device = profile.getAuthorizedDevices().values().stream()
+			.filter(d -> d.getAddress().equals(address))
+			.findFirst().orElse(null);
+		if(device != null){
+			return device.isAuthorized();
 		}
-		out.println(command);
+		return false;
 	}
 }
