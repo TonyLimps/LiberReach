@@ -53,7 +53,7 @@ public class TokenThread extends Thread {
 					timeRemaining -= 1;
 				}
 			}
-			catch(NoSuchAlgorithmException e){
+			catch (NoSuchAlgorithmException e) {
 				logger.error(e);
 				exceptionManager.throwException(e);
 			}
@@ -63,9 +63,9 @@ public class TokenThread extends Thread {
 		}
 	}
 
-	public void close(){
+	public void close() {
 		interrupt();
-		try{
+		try {
 			join();
 		}
 		catch (InterruptedException e) {

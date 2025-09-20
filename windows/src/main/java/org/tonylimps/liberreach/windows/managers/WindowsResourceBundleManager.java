@@ -30,30 +30,6 @@ public class WindowsResourceBundleManager implements ResourceBundleManager {
 		this.profile = profile;
 	}
 
-	public HashMap<Locale, ResourceBundle> getSupportedResourceBundles() {
-		HashMap<Locale, ResourceBundle> result = new HashMap<>();
-		try (Stream<Path> paths = Files.walk(Paths.get(Core.getConfig("languageBundlesPath")))) {
-			paths.map(path -> path.toString())
-				 .filter(path -> path.endsWith(".properties"))
-				 .forEach(path -> {
-					 try {
-						 ResourceBundle bundle = new PropertyResourceBundle(new FileInputStream(path));
-						 Locale locale = Locale.forLanguageTag(bundle.getString("locale"));
-						 result.put(locale, bundle);
-					 }
-					 catch (IOException e) {
-logger.error(e);
-exceptionManager.throwException(e);
-					 }
-				 });
-		}
-		catch (IOException e) {
-logger.error(e);
-exceptionManager.throwException(e);
-		}
-		return result;
-	}
-
 	public ResourceBundle getBundle() {
 		if (bundle == null) {
 			Locale locale = profile.getLocale();
@@ -77,5 +53,29 @@ exceptionManager.throwException(e);
 			logger.info("Loaded resource bundle.");
 		}
 		return bundle;
+	}
+
+	public HashMap<Locale, ResourceBundle> getSupportedResourceBundles() {
+		HashMap<Locale, ResourceBundle> result = new HashMap<>();
+		try (Stream<Path> paths = Files.walk(Paths.get(Core.getConfig("languageBundlesPath")))) {
+			paths.map(path -> path.toString())
+				.filter(path -> path.endsWith(".properties"))
+				.forEach(path -> {
+					try {
+						ResourceBundle bundle = new PropertyResourceBundle(new FileInputStream(path));
+						Locale locale = Locale.forLanguageTag(bundle.getString("locale"));
+						result.put(locale, bundle);
+					}
+					catch (IOException e) {
+						logger.error(e);
+						exceptionManager.throwException(e);
+					}
+				});
+		}
+		catch (IOException e) {
+			logger.error(e);
+			exceptionManager.throwException(e);
+		}
+		return result;
 	}
 }

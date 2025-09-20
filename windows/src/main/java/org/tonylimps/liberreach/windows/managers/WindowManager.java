@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.ResourceBundle;
 
 public class WindowManager {
+
 	private static final HashMap<String, Pair<Parent, Object>> windows = new HashMap<>();
 	private static final HashMap<String, Stage> stages = new HashMap<>();
 	private static final HashMap<String, Boolean> windowStatus = new HashMap<>();

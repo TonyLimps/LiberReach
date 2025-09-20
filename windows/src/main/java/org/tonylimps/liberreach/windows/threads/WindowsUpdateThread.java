@@ -31,6 +31,7 @@ public class WindowsUpdateThread extends UpdateThread {
 		this.profile = profile;
 		updateDelayMillis = Integer.parseInt(Core.getConfig("uiUpdateDelayMillis"));
 	}
+
 	@Override
 	public void run() {
 		while (running.get()) {
@@ -48,23 +49,23 @@ public class WindowsUpdateThread extends UpdateThread {
 		}
 	}
 
+	private void updateDevicesLists() {
+		MainController.getInstance().updateDevicesLists();
+	}
+
+	private void updateTokenText() {
+		SettingsController settingsController = SettingsController.getInstance();
+		String originalToken = settingsController.tokenArea.getText();
+		String newToken = Main.getTokenThread().getToken().getValue();
+		if (!originalToken.equals(newToken)) {
+			settingsController.tokenArea.setText(newToken);
+		}
+		settingsController.timeRemainingLabel.setText(String.valueOf(Main.getTokenThread().getTimeRemaining()));
+	}
+
 	@Override
 	public void setPaths(List<CustomPath> paths) {
 		MainController.getInstance().setPaths(paths);
 		MainController.getInstance().updatePathsListview();
-	}
-
-	private void updateDevicesLists(){
-		MainController.getInstance().updateDevicesLists();
-	}
-
-	private void updateTokenText(){
-		SettingsController settingsController = SettingsController.getInstance();
-		String originalToken = settingsController.tokenArea.getText();
-		String newToken = Main.getTokenThread().getToken().getValue();
-		if(!originalToken.equals(newToken)){
-			settingsController.tokenArea.setText(newToken);
-		}
-		settingsController.timeRemainingLabel.setText(String.valueOf(Main.getTokenThread().getTimeRemaining()));
 	}
 }

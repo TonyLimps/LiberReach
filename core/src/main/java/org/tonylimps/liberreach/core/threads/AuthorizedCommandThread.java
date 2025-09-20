@@ -3,20 +3,19 @@ package org.tonylimps.liberreach.core.threads;
 import com.alibaba.fastjson2.JSON;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.tonylimps.liberreach.core.AuthorizedDevice;
-import org.tonylimps.liberreach.core.Core;
-import org.tonylimps.liberreach.core.CustomPath;
-import org.tonylimps.liberreach.core.Token;
+import org.tonylimps.liberreach.core.*;
 import org.tonylimps.liberreach.core.enums.CommandType;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
-import org.tonylimps.liberreach.core.FileSender;
 import org.tonylimps.liberreach.core.managers.ProfileManager;
 
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.tonylimps.liberreach.core.enums.CommandType.*;
@@ -55,49 +54,49 @@ public class AuthorizedCommandThread extends CommandThread {
 		}
 	}
 	@Override
-	protected void exec(HashMap<String, String> command) throws IOException {
-		CommandType type = CommandType.fromCode(command.get("type"));
+	protected void exec(HashMap<String, Object> command) throws IOException {
+		CommandType type = CommandType.valueOf((String)command.get("type"));
 		switch (type) {
 			case ADD -> {
 				// 添加设备请求
 				if (command.get("token").equals(token.getValue())) {
 					// 如果令牌正确，回应允许命令
 					send(Core.createCommand(
-						"type", ANSWER.getCode(),
-						"answerType", ADD.getCode(),
+						"type", ANSWER,
+						"answerType", ADD,
 						"name", profile.getDeviceName(),
 						"host", Core.getHostAddress(),
 						"port", Core.getConfig("defaultPort"),
-						"content", SUCCESS.getCode()
+						"content", SUCCESS
 					));
-					profile.addAuthorizedDevice(new AuthorizedDevice(address, command.get("name")));
+					profile.addAuthorizedDevice(new AuthorizedDevice(address, (String)command.get("name")));
 					profileManager.saveProfile();
 				}
 				else {
 					// 如果令牌错误，回应拒绝命令
 					send(Core.createCommand(
-						"type", ANSWER.getCode(),
-						"answerType", ADD.getCode(),
+						"type", ANSWER,
+						"answerType", ADD,
 						"host", Core.getHostAddress(),
 						"port", Core.getConfig("defaultPort"),
-						"content", WRONGTOKEN.getCode()
+						"content", WRONGTOKEN
 					));
 				}
 			}
 			case HEARTBEAT -> {
 				boolean isAuthorized = isAuthorized();
 				send(Core.createCommand(
-					"type", ANSWER.getCode(),
-					"answerType", HEARTBEAT.getCode(),
-					"online", "true",
-					"isAuthorized", String.valueOf(isAuthorized)
+					"type", ANSWER,
+					"answerType", HEARTBEAT,
+					"online", true,
+					"authorized", isAuthorized
 				));
 			}
 			case GETPATH -> {
 				if(!isAuthorized()){
 					return;
 				}
-				CustomPath customPath = new CustomPath(command.get("path"));
+				CustomPath customPath = new CustomPath((String)command.get("path"));
 				List<CustomPath> paths;
 				boolean err = false;
 				IOException exception = null;
@@ -121,10 +120,10 @@ public class AuthorizedCommandThread extends CommandThread {
 					}
 				}
 				send(Core.createCommand(
-					"type", ANSWER.getCode(),
-					"answerType", GETPATH.getCode(),
+					"type", ANSWER,
+					"answerType", GETPATH,
 					"paths", JSON.toJSONString(paths),
-					"err", String.valueOf(err),
+					"err", err,
 					"exception", exception == null
 						? ""
 						: JSON.toJSONString(List.of(exception))
@@ -134,11 +133,11 @@ public class AuthorizedCommandThread extends CommandThread {
 				if(!isAuthorized()){
 					return;
 				}
-				CustomPath customPath = new CustomPath(command.get("path"));
+				CustomPath customPath = new CustomPath((String)command.get("path"));
 				Path path = customPath.getPath();
-				int port = Integer.parseInt(command.get("port"));
+				int port = (int)command.get("port");
 				File file = path.toFile();
-				FileSender fileSender = new FileSender(file, address, port);
+				FileSender fileSender = new FileSender(file, address, port, exceptionManager);
 				fileSender.createFile();
 				fileSender.connect();
 				fileSender.start();

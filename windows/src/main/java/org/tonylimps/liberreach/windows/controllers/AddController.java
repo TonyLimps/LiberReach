@@ -1,5 +1,6 @@
 package org.tonylimps.liberreach.windows.controllers;
 
+import com.alibaba.fastjson2.JSON;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -50,6 +51,7 @@ public class AddController {
 			stage.setTitle(Main.getResourceBundleManager().getBundle().getString("add.title"));
 		});
 	}
+
 	@FXML
 	private void onAddButtonAction() {
 
@@ -57,10 +59,10 @@ public class AddController {
 		// 中途出现错误视为设备不在线
 		String host = addressField.getText();
 		InetAddress address;
-		try{
+		try {
 			address = InetAddress.getByName(host);
 		}
-		catch (Exception e){
+		catch (Exception e) {
 			logger.error("Parse address {} failed.", host, e);
 			Main.getExceptionManager().throwException(e);
 			return;
@@ -70,30 +72,30 @@ public class AddController {
 		int soTimeout = Integer.parseInt(Core.getConfig("soTimeout"));
 		RequestResult result;
 		int port = Integer.parseInt(Core.getConfig("defaultPort"));
-		try(Socket socket = new Socket(host, port)){
+		try (Socket socket = new Socket(host, port)) {
 			logger.info("Connected to {}", address);
 
 			socket.setSoTimeout(soTimeout);
 			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			String command = Core.createCommand("type", ADD.getCode(), "token", token, "name", Main.getProfileManager().getProfile().getDeviceName());
+			String command = Core.createCommand("type", ADD, "token", token, "name", Main.getProfileManager().getProfile().getDeviceName());
 			out.println(command);
 
 			logger.info("Sent to {} :\n{}", address, command);
-			try{
-				HashMap<String,String> answer = Core.parseCommand(in.readLine());
-				result = RequestResult.fromCode(answer.get("content"));
-				if(result.equals(RequestResult.SUCCESS)){
+			try {
+				HashMap<String, String> answer = JSON.parseObject(in.readLine(), HashMap.class);
+				result = RequestResult.fromString(answer.get("content"));
+				if (result.equals(RequestResult.SUCCESS)) {
 					String name = answer.get("name");
 					Main.getProfileManager().getProfile().addViewableDevice(new ViewableDevice(host, port, name));
 					Main.getProfileManager().saveProfile();
 				}
 			}
-			catch(Exception e){
+			catch (Exception e) {
 				result = RequestResult.TIMEOUT;
 			}
 		}
-		catch(IOException e){
+		catch (IOException e) {
 			logger.error("Connect failed.");
 			logger.error(e);
 			result = RequestResult.OFFLINE;
@@ -105,7 +107,7 @@ public class AddController {
 	private static Alert getAlert(RequestResult result) {
 		Alert alert = null;
 		ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
-		switch(result){
+		switch (result) {
 			case SUCCESS -> {
 				alert = new Alert(Alert.AlertType.INFORMATION);
 				alert.setTitle(bundle.getString("add.alert.success.title"));

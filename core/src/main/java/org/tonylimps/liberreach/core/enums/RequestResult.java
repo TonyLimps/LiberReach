@@ -1,28 +1,18 @@
 package org.tonylimps.liberreach.core.enums;
 
 public enum RequestResult {
-	OFFLINE("0"),
-	WRONGTOKEN("1"),
-	TIMEOUT("2"),
-	SUCCESS("3"),
-	TOOMANYREQUESTS("4");
+	OFFLINE,
+	WRONGTOKEN,
+	TIMEOUT,
+	SUCCESS,
+	TOOMANYREQUESTS;
 
-	private final String code;
-
-	RequestResult(String code) {
-		this.code = code;
-	}
-
-	public String getCode() {
-		return code;
-	}
-
-	public static RequestResult fromCode(String code) {
-		for (RequestResult type : values()) {
-			if (type.code.equals(code)) {
-				return type;
+	public static RequestResult fromString(String type){
+		for(RequestResult c : values()){
+			if(type.contains(c.name())){
+				return c;
 			}
 		}
-		throw new IllegalArgumentException("Unknown command code: " + code);
+		return null;
 	}
 }

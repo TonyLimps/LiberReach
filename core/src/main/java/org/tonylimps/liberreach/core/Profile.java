@@ -6,7 +6,9 @@ import org.tonylimps.liberreach.core.threads.AuthorizedCommandThread;
 import org.tonylimps.liberreach.core.threads.ViewableCommandThread;
 
 import java.net.InetAddress;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
@@ -89,6 +91,22 @@ public class Profile {
 		return profile;
 	}
 
+	public HashMap<String, AuthorizedDevice> getAuthorizedDevices() {
+		return authorizedDevices;
+	}
+
+	public void setAuthorizedDevices(HashMap<String, AuthorizedDevice> authorizedDevices) {
+		this.authorizedDevices = authorizedDevices;
+	}
+
+	public HashMap<String, ViewableDevice> getViewableDevices() {
+		return viewableDevices;
+	}
+
+	public void setViewableDevices(HashMap<String, ViewableDevice> viewableDevices) {
+		this.viewableDevices = viewableDevices;
+	}
+
 	public static Profile getEmptyProfile(String deviceName) {
 		return new Profile(
 			deviceName,
@@ -117,22 +135,6 @@ public class Profile {
 		this.locale = locale;
 	}
 
-	public HashMap<String, AuthorizedDevice> getAuthorizedDevices() {
-		return authorizedDevices;
-	}
-
-	public void setAuthorizedDevices(HashMap<String, AuthorizedDevice> authorizedDevices) {
-		this.authorizedDevices = authorizedDevices;
-	}
-
-	public HashMap<String, ViewableDevice> getViewableDevices() {
-		return viewableDevices;
-	}
-
-	public void setViewableDevices(HashMap<String, ViewableDevice> viewableDevices) {
-		this.viewableDevices = viewableDevices;
-	}
-
 	public void addAuthorizedDevice(AuthorizedDevice device) {
 		String name = device.getDeviceName();
 		List<String> names = authorizedDevices.values().stream()
@@ -155,7 +157,7 @@ public class Profile {
 		AuthorizedDevice device = authorizedDevices.get(name);
 		device.setAddress(null);
 		AuthorizedCommandThread commandThread = device.getCommandThread();
-		if(commandThread != null){
+		if (commandThread != null) {
 			commandThread.close();
 			device.setCommandThread(null);
 		}
@@ -165,8 +167,7 @@ public class Profile {
 	public void removeViewableDevice(String name) {
 		ViewableDevice device = viewableDevices.get(name);
 		ViewableCommandThread commandThread = device.getCommandThread();
-		if(commandThread != null){
-			commandThread.close();
+		if (commandThread != null) {
 			device.setCommandThread(null);
 		}
 		viewableDevices.remove(name);

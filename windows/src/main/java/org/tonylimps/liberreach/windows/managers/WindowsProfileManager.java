@@ -54,26 +54,6 @@ public class WindowsProfileManager implements ProfileManager {
 	}
 
 	@Override
-	public void saveProfile() {
-		try {
-			Path path = Paths.get("profile.dat");
-			String profileString = JSON.toJSONString(profile);
-			String encryptedString = Core.encrypt(profileString, UUID);
-			byte[] encryptedBytes = encryptedString.getBytes();
-			Files.write(path, encryptedBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-		}
-		catch (Exception e) {
-			logger.error(e);
-			exceptionManager.throwException(e);
-		}
-	}
-
-	@Override
-	public String getDeviceName() {
-		return System.getenv("COMPUTERNAME");
-	}
-
-	@Override
 	public void initProfile() {
 		File profileFile = new File("profile.dat");
 		if (!profileFile.exists()) {
@@ -120,6 +100,26 @@ public class WindowsProfileManager implements ProfileManager {
 			String encryptedString = Core.encrypt(emptyProfile.toJSONString(), UUID);
 			byte[] encryptedBytes = encryptedString.getBytes();
 			// 不存在则创建，存在则覆盖
+			Files.write(path, encryptedBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+		}
+		catch (Exception e) {
+			logger.error(e);
+			exceptionManager.throwException(e);
+		}
+	}
+
+	@Override
+	public String getDeviceName() {
+		return System.getenv("COMPUTERNAME");
+	}
+
+	@Override
+	public void saveProfile() {
+		try {
+			Path path = Paths.get("profile.dat");
+			String profileString = JSON.toJSONString(profile);
+			String encryptedString = Core.encrypt(profileString, UUID);
+			byte[] encryptedBytes = encryptedString.getBytes();
 			Files.write(path, encryptedBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 		}
 		catch (Exception e) {

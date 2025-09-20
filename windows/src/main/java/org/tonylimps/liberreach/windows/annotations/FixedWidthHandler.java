@@ -8,15 +8,15 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class FixedWidthHandler {
 
-	public void handle(Object... controllers){
+	public void handle(Object... controllers) {
 		Arrays.stream(controllers).forEach(controller -> {
 			Class<?> controllerClass = controller.getClass();
 			Arrays.stream(controllerClass.getDeclaredFields())
 				.filter(field -> field.isAnnotationPresent(FixedWidth.class) && SplitPane.class.isAssignableFrom(field.getType()))
 				.forEach(field -> {
-					try{
+					try {
 						field.setAccessible(true);
-						SplitPane pane = (SplitPane)field.get(controller);
+						SplitPane pane = (SplitPane) field.get(controller);
 						FixedWidth annotation = field.getAnnotation(FixedWidth.class);
 						fixWidth(annotation.fixedIndex(), pane);
 					}
@@ -30,7 +30,7 @@ public class FixedWidthHandler {
 	private void fixWidth(int index, SplitPane pane) {
 		AtomicReference<Double> fixedWidth = new AtomicReference<>();
 		AtomicBoolean ignoreWidthChange = new AtomicBoolean(false);
-		if(index == 0){
+		if (index == 0) {
 			fixedWidth.set(pane.getDividerPositions()[0] * pane.getWidth());
 			pane.getDividers().get(0).positionProperty().addListener((obs, oldVal, newVal) -> {
 				if (!ignoreWidthChange.get()) {
@@ -47,7 +47,7 @@ public class FixedWidthHandler {
 				}
 			});
 		}
-		else if(index == 1){
+		else if (index == 1) {
 			fixedWidth.set((1 - pane.getDividerPositions()[0]) * pane.getWidth());
 			pane.getDividers().get(0).positionProperty().addListener((obs, oldVal, newVal) -> {
 				if (!ignoreWidthChange.get()) {

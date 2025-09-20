@@ -1,16 +1,13 @@
 # LiberReach
 
-[![Status: In Development](https://img.shields.io/badge/Status-In%20Development-blue)](https://github.com/your_username/your_repo)
-[![LICENSE](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
-
-一款真正自由、高效、基于点对点（P2P）直连的本地文件传输与管理软件。告别繁琐的上传下载步骤，在您的设备间构建一个可控的文件网络。
+一款自由、高效、基于点对点直连的文件传输与管理软件。告别繁琐的上传下载步骤，在您的设备间构建一个可控的文件网络。
 
 ## 核心特色
 
--   **P2P 直传**：文件直接在设备间传输，速度仅取决于你的网络，无需经过任何第三方服务器中转。
--   **自由浏览，杜绝遗漏**：授权后即可自由查看对方设备的整个文件目录，再也无需担心“忘记上传某个文件”。
--   **安全简便的授权**：基于一次性令牌进行安全验证。首次授权后，即可实现**一次授权，永久访问**。
--   **极简操作逻辑**：所有操作均可在一台设备上完成，管理所有互联设备，极大地简化了传输流程。
+-   **P2P直传**：文件直接在设备间传输，速度仅取决于你的网络，无需经过第三方服务器中转。
+-   **自由浏览**：授权后即可自由查看对方设备的整个文件目录，再也无需担心“忘记上传某个文件”。
+-   **简便授权**：基于一次性令牌进行安全验证。首次授权后，即可实现**一次授权，永久访问**。
+-   **简便操作**：所有操作均可在一台设备上完成，管理所有互联设备，极大地简化了传输流程。
 
 ## 使用指南
 
@@ -41,11 +38,11 @@
 
 ## 🛠 从源码构建 (Windows)
 
-本项目提供了一个便捷的构建工具来生成 Windows 原生发行版。
+本项目提供了Windows原生发行版构建工具。
 
 ### 前提条件
--   Java JDK 17+
--   JavaFX SDK 17.0.16+
+-   JDK 17+
+-   JavaFX SDK 17.0.16
 -   GCC (MinGW-w64)
 
 ### 构建步骤
@@ -61,11 +58,11 @@
     -   `path-to-jar`: Windows 模块打包后的 JAR 文件路径。
     -   `path-to-javafx-sdk`: JavaFX SDK 根目录路径。
     -   `path-to-launch.c`: `windows/src/launch/launch.c` 文件路径。
-    -   `path-to-gcc`: `gcc.exe` 编译器路径（如 `C:\mingw64\bin\gcc.exe`）。
+    -   `path-to-gcc`: `gcc.exe` 编译器路径（如 `C:\mingw64\bin\`）。
 
-构建完成后，将生成 `LiberReach` 目录，可直接运行的主程序为 `LiberReach.exe`。
+构建完成后，将生成 `LiberReach` 目录，主程序为 `LiberReach.exe`。
 
-联系我: tonylimps@qq.com
+联系我: tonylimps@outlook.com
 
 ---
 

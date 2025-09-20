@@ -13,13 +13,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.tonylimps.liberreach.core.enums.CommandType.HEARTBEAT;
 
-public class CommandThread extends Thread{
+public class CommandThread extends Thread {
 
 	private final Logger logger = LogManager.getLogger(getClass());
 	protected AtomicBoolean running;
@@ -34,20 +33,21 @@ public class CommandThread extends Thread{
 	protected Token token;
 	protected UpdateThread updateThread;
 
-	public CommandThread(){}
+	public CommandThread() {
+	}
 
 	@Override
 	public void run() {
 		while (running.get()) {
 			try {
 				String commandString = in.readLine();
-				if(commandString == null){
+				if (commandString == null) {
 					break;
 				}
-				if( !commandString.contains("\"type\":\"" + HEARTBEAT.getCode() +"\"") && !commandString.contains("\"answerType\":\"" + HEARTBEAT.getCode() +"\"") ){
+				if (!commandString.contains("\"type\":\"" + HEARTBEAT + "\"") && !commandString.contains("\"answerType\":\"" + HEARTBEAT + "\"")) {
 					logger.info("Received from {} :\n{}", address, commandString);
 				}
-				HashMap<String, String> command = JSON.parseObject(commandString, HashMap.class);
+				HashMap<String, Object> command = JSON.parseObject(commandString, HashMap.class);
 				exec(command);
 			}
 			catch (IOException e) {
@@ -57,23 +57,23 @@ public class CommandThread extends Thread{
 		}
 	}
 
-	protected void exec(HashMap<String, String> command) throws IOException {}
-
-	// 发送命令
-	public void send(String command) {
-		out.println(command);
-		if(!command.contains("\"type\":\"" + HEARTBEAT.getCode() +"\"") && !command.contains("\"answerType\":\"" + HEARTBEAT.getCode() +"\"")){
-			logger.info("Sent to {}:\n{}", address, command);
-		}
-	}
+	protected void exec(HashMap<String, Object> command) throws IOException {}
 
 	protected void error(Exception e) {
 		logger.error(e);
 	}
 
-	public void close(){
+	// 发送命令
+	public void send(String command) {
+		out.println(command);
+		if (!command.contains("\"type\":\"" + HEARTBEAT + "\"") && !command.contains("\"answerType\":\"" + HEARTBEAT + "\"")) {
+			logger.info("Sent to {}:\n{}", address, command);
+		}
+	}
+
+	public void close() {
 		interrupt();
-		try{
+		try {
 			join();
 		}
 		catch (InterruptedException e) {

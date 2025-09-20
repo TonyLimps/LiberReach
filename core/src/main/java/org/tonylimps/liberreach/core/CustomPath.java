@@ -24,26 +24,27 @@ public class CustomPath {
 	private Path path;
 	private String stringPath;
 
-	private CustomPath(){}
+	private CustomPath() {
+	}
 
 	public CustomPath(String fullPath) {
 		String[] paths = fullPath.split(deviceSplit);
-		if(paths.length == 0){
+		if (paths.length == 0) {
 			// ::
 			deviceName = "";
 			path = root;
 		}
-		else if(paths.length == 1 && fullPath.endsWith(deviceSplit)){
+		else if (paths.length == 1 && fullPath.endsWith(deviceSplit)) {
 			// name::
 			deviceName = paths[0];
 			path = root;
 		}
-		else if(paths.length == 2){
+		else if (paths.length == 2) {
 			// name::path
 			deviceName = paths[0];
 			path = Paths.get(paths[1]);
 		}
-		else{
+		else {
 			deviceName = "";
 			path = new EmptyPath();
 		}
@@ -57,23 +58,37 @@ public class CustomPath {
 		this.deviceName = customPath.getDeviceName();
 	}
 
+	@JSONField(serialize = false)
+	public Path getPath() {
+		return path;
+	}
+
+	public String getDeviceName() {
+		return deviceName;
+	}
+
 	public CustomPath(String deviceName, Path path) {
 		this.deviceName = deviceName;
 		this.path = path;
 		stringPath = path.toString();
-		if(isRootPath()){
+		if (isRootPath()) {
 			directory = true;
 		}
-		else{
+		else {
 			directory = Files.isDirectory(path);
 		}
 	}
 
+	@JSONField(serialize = false)
+	public boolean isRootPath() {
+		return path.toString().endsWith(":" + WIN32SPLIT) || path.toString().equals(SPLIT);
+	}
+
 	public static CustomPath fromJSONString(String jsonString) {
 		HashMap<String, Object> map = JSON.parseObject(jsonString, HashMap.class);
-		String deviceName = (String)map.get("deviceName");
-		boolean isDirectory = (boolean)map.get("directory");
-		String stringPath = (String)map.get("stringPath");
+		String deviceName = (String) map.get("deviceName");
+		boolean isDirectory = (boolean) map.get("directory");
+		String stringPath = (String) map.get("stringPath");
 		Path path = stringPath == null
 			? new EmptyPath()
 			: Paths.get(stringPath);
@@ -85,30 +100,26 @@ public class CustomPath {
 		return result;
 	}
 
-	public CustomPath enter(String name){
+	public CustomPath enter(String name) {
 		CustomPath customPath = new CustomPath(this);
-		if(customPath.path instanceof EmptyPath){
+		if (customPath.path instanceof EmptyPath) {
 			customPath.path = Paths.get(name);
 		}
-		else{
+		else {
 			customPath.path = customPath.path.resolve(name);
 		}
 		return customPath;
 	}
 
-	public CustomPath back(){
+	public CustomPath back() {
 		CustomPath customPath = new CustomPath(this);
-		if(customPath.path instanceof EmptyPath || isRootPath()){
+		if (customPath.path instanceof EmptyPath || isRootPath()) {
 			customPath.path = new EmptyPath();
 		}
-		else{
+		else {
 			customPath.path = customPath.path.getParent();
 		}
 		return customPath;
-	}
-
-	public String getDeviceName(){
-		return deviceName;
 	}
 
 	public String getFileName() {
@@ -119,11 +130,6 @@ public class CustomPath {
 
 	public File toFile() {
 		return path.toFile();
-	}
-
-	@JSONField(serialize = false)
-	public Path getPath(){
-		return path;
 	}
 
 	public void setFullPath(CustomPath path) {
@@ -146,16 +152,11 @@ public class CustomPath {
 		return directory;
 	}
 
-	@JSONField(serialize = false)
-	public boolean isRootPath() {
-		return path.toString().endsWith(":"+WIN32SPLIT) || path.toString().equals(SPLIT);
-	}
-
 	public void setDirectory(boolean directory) {
 		this.directory = directory;
 	}
 
-	public String getStringPath(){
+	public String getStringPath() {
 		return stringPath;
 	}
 }

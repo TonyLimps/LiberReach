@@ -3,12 +3,12 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<VBox alignment="TOP_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.tonylimps.liberreach.windows.controllers.AddController">
+<VBox alignment="TOP_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.tonylimps.liberreach.windows.controllers.AddController">
    <children>
-      <HBox alignment="CENTER_LEFT" prefHeight="0.0" prefWidth="600.0">
+      <HBox alignment="CENTER_RIGHT">
          <children>
-            <Label prefWidth="100.0" text="%add.label.address" />
-            <TextField fx:id="addressField" HBox.hgrow="ALWAYS">
+            <Label maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" text="%add.label.address" />
+            <TextField fx:id="addressField" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefWidth="300.0" HBox.hgrow="ALWAYS">
                <HBox.margin>
                   <Insets left="20.0" />
                </HBox.margin>
@@ -18,10 +18,10 @@
             <Insets left="50.0" right="50.0" top="50.0" />
          </VBox.margin>
       </HBox>
-      <HBox alignment="CENTER_LEFT" prefHeight="23.0" prefWidth="497.0" VBox.vgrow="ALWAYS">
+      <HBox alignment="CENTER_RIGHT" VBox.vgrow="ALWAYS">
          <children>
-            <Label prefHeight="15.0" prefWidth="100.0" text="%add.label.token" />
-            <TextArea fx:id="tokenArea" prefHeight="139.0" prefWidth="380.0" wrapText="true" HBox.hgrow="ALWAYS">
+            <Label maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" text="%add.label.token" HBox.hgrow="ALWAYS" />
+            <TextArea fx:id="tokenArea" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefWidth="300.0" wrapText="true">
                <HBox.margin>
                   <Insets left="20.0" />
                </HBox.margin>

@@ -11,7 +11,7 @@ import java.util.List;
 
 public class SingleFocusHandler {
 
-	private HashMap<String,List<Node>> focusedLists;
+	private HashMap<String, List<Node>> focusedLists;
 
 	public void handle(Object... controllers) {
 		focusedLists = new HashMap<>();
@@ -20,18 +20,18 @@ public class SingleFocusHandler {
 			Arrays.stream(controllerClass.getDeclaredFields())
 				.filter(field -> field.isAnnotationPresent(SingleFocus.class) && Node.class.isAssignableFrom(field.getType()))
 				.forEach(field -> {
-					try{
+					try {
 						field.setAccessible(true);
-						Node control = (Node)field.get(controller);
+						Node control = (Node) field.get(controller);
 						SingleFocus annotation = field.getAnnotation(SingleFocus.class);
 						setFocused(control, annotation.focused());
-						if(!focusedLists.containsKey(annotation.group())){
+						if (!focusedLists.containsKey(annotation.group())) {
 							focusedLists.put(annotation.group(), new ArrayList<>());
 						}
 						control.focusedProperty().addListener((observable, oldValue, newValue) -> {
-							if(!oldValue && newValue){
+							if (!oldValue && newValue) {
 								focusedLists.get(annotation.group()).stream()
-									.filter(node -> node!=control)
+									.filter(node -> node != control)
 									.forEach(node -> setFocused(node, false));
 							}
 						});
@@ -50,7 +50,7 @@ public class SingleFocusHandler {
 				node.requestFocus();
 			}
 			else {
-				if(node instanceof ListView){
+				if (node instanceof ListView) {
 					((ListView<?>) node).getSelectionModel().clearSelection();
 				}
 				node.setFocusTraversable(false);

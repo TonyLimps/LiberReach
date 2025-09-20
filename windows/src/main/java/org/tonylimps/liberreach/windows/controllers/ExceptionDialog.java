@@ -16,7 +16,6 @@ import java.util.ResourceBundle;
 public class ExceptionDialog {
 
 	private final Logger logger = LogManager.getLogger(getClass());
-	private final double windowMoveDistance = 30;
 	private final int exceptions;
 
 	public ExceptionDialog(Exception e, int exceptions) {
@@ -42,9 +41,15 @@ public class ExceptionDialog {
 				WindowManager.initWindow("exception" + exceptions, stage, root, loader.getController());
 			}
 			catch (Exception ex) {
-				logger.fatal("Create exception dialog failed.",ex);
+				logger.fatal("Create exception dialog failed.", ex);
 				System.exit(1);
 			}
+		});
+	}
+
+	public void close() {
+		Platform.runLater(() -> {
+			WindowManager.close("exception" + exceptions);
 		});
 	}
 
@@ -53,16 +58,6 @@ public class ExceptionDialog {
 			Stage stage = WindowManager.getStage("exception" + exceptions);
 			stage.show();
 			stage.centerOnScreen();
-			double x = stage.getX();
-			double y = stage.getY();
-			stage.setX(x + windowMoveDistance * exceptions);
-			stage.setY(y + windowMoveDistance * exceptions);
-		});
-	}
-
-	public void close() {
-		Platform.runLater(() -> {
-			WindowManager.close("exception" + exceptions);
 		});
 	}
 }

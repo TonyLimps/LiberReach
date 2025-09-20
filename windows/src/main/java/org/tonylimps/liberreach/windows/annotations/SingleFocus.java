@@ -9,5 +9,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface SingleFocus {
 	boolean focused() default false;
+
 	String group() default "0";
 }

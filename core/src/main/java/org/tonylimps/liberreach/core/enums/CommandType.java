@@ -1,30 +1,39 @@
 package org.tonylimps.liberreach.core.enums;
 
+/**
+ * <h1>CommandType</h1>
+ * <p>命令类型枚举</p>
+ * @author Tony Limps
+ * @since 2025
+ */
 public enum CommandType {
-	ANSWER("0"),
-	HEARTBEAT("1"),
-	ADD("2"),
-	GETPATH("3"),
-	DOWNLOAD("4"),
-	UPLOAD("5");
+	/**
+	 * 回应对应的命令(由Authorized设备发出)
+	 */
+	ANSWER,
+	/**
+	 * <p>心跳命令</p>
+	 * <p>是否在线(online: boolean)</p>
+	 * <p>是否已授权(authorized: boolean)</p>
+	 */
+	HEARTBEAT,
+	/**
+	 * 添加设备
+	 * <p>设备名称(name: string)</p>
+	 * <p>地址(host: string)</p>
+	 * <p>端口号(port: string/int)</p>
+	 */
+	ADD,
+	GETPATH,
+	DOWNLOAD,
+	UPLOAD;
 
-	private final String code;
-
-	CommandType(String code) {
-		this.code = code;
-	}
-
-	public String getCode() {
-		return code;
-	}
-
-	public static CommandType fromCode(String code) {
-		for (CommandType type : values()) {
-			if (type.code.equals(code)) {
-				return type;
+	public static CommandType fromString(String type){
+		for(CommandType c : values()){
+			if(type.contains(c.name())){
+				return c;
 			}
 		}
-		throw new IllegalArgumentException("Unknown command code: " + code);
+		return null;
 	}
-
 }
