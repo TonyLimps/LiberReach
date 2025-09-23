@@ -119,3 +119,4 @@ ClientBin/
 windows/src/rebuild/rebuild
 windows/src/launch/launch
 !**/*.c
+/Downloads/

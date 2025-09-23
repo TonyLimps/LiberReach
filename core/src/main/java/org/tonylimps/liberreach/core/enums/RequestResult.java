@@ -5,14 +5,5 @@ public enum RequestResult {
 	WRONGTOKEN,
 	TIMEOUT,
 	SUCCESS,
-	TOOMANYREQUESTS;
-
-	public static RequestResult fromString(String type){
-		for(RequestResult c : values()){
-			if(type.contains(c.name())){
-				return c;
-			}
-		}
-		return null;
-	}
+	TOOMANYREQUESTS
 }

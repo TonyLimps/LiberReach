@@ -96,20 +96,20 @@ public class AuthorizedCommandThread extends CommandThread {
 				if(!isAuthorized()){
 					return;
 				}
-				CustomPath customPath = new CustomPath((String)command.get("path"));
+				CustomPath customPath = new CustomPath((String)command.get("path"),true);
 				List<CustomPath> paths;
 				boolean err = false;
 				IOException exception = null;
 				if(customPath.isOnlyDeviceName()){
 					paths = Arrays.stream(File.listRoots())
-						.map(file -> new CustomPath("",file.toPath()))
+						.map(file -> new CustomPath("",file.toPath(),true))
 						.toList();
 				}
 				else{
 					Path path = customPath.getPath();
 					try{
 						paths = Files.list(path)
-							.map(p -> new CustomPath("",p))
+							.map(p -> new CustomPath("",p,true))
 							.toList();
 					}
 					catch(IOException e){
@@ -133,7 +133,7 @@ public class AuthorizedCommandThread extends CommandThread {
 				if(!isAuthorized()){
 					return;
 				}
-				CustomPath customPath = new CustomPath((String)command.get("path"));
+				CustomPath customPath = new CustomPath((String)command.get("path"),false);
 				Path path = customPath.getPath();
 				int port = (int)command.get("port");
 				File file = path.toFile();

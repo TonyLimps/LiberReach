@@ -28,12 +28,4 @@ public enum CommandType {
 	DOWNLOAD,
 	UPLOAD;
 
-	public static CommandType fromString(String type){
-		for(CommandType c : values()){
-			if(type.contains(c.name())){
-				return c;
-			}
-		}
-		return null;
-	}
 }

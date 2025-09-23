@@ -95,7 +95,19 @@
                                             <children>
                                     <StackPane prefHeight="150.0" prefWidth="200.0" HBox.hgrow="ALWAYS">
                                        <children>
-                                                      <ListView fx:id="pathsListView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onMouseClicked="#onPathsListViewClick" />
+                                                      <ListView fx:id="pathsListView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onMouseClicked="#onPathsListViewClick">
+                                             <contextMenu>
+                                                <ContextMenu>
+                                                  <items>
+                                                      <MenuItem fx:id="sortByName" mnemonicParsing="false" text="%main.sortByName" />
+                                                      <MenuItem fx:id="sortByType" mnemonicParsing="false" text="%main.sortByType" />
+                                                      <MenuItem fx:id="sortBySizeI" mnemonicParsing="false" text="%main.sortBySizeI" />
+                                                      <MenuItem fx:id="sortBySizeD" mnemonicParsing="false" text="%main.sortBySizeD" />
+                                                      <MenuItem fx:id="sortByLastModifiedI" mnemonicParsing="false" text="%main.sortByLastModifiedI" />
+                                                      <MenuItem fx:id="sortByLastModifiedD" mnemonicParsing="false" text="%main.sortByLastModifiedD" />
+                                                  </items>
+                                                </ContextMenu>
+                                             </contextMenu></ListView>
                                           <Label fx:id="pathsListViewLabel" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
                                        </children>
                                     </StackPane>
