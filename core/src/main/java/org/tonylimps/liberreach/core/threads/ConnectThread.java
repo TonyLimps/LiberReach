@@ -95,14 +95,6 @@ public class ConnectThread extends Thread {
 	public void close() {
 		try {
 			serverSocket.close();
-			authorizedDevices.values().stream()
-				.map(AuthorizedDevice::getCommandThread)
-				.filter(Objects::nonNull)
-				.forEach(CommandThread::close);
-			viewableDevices.values().stream()
-				.map(ViewableDevice::getCommandThread)
-				.filter(Objects::nonNull)
-				.forEach(CommandThread::close);
 		}
 		catch (IOException e) {
 

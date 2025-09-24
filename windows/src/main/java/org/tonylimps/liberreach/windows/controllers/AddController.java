@@ -83,10 +83,10 @@ public class AddController {
 
 			logger.info("Sent to {} :\n{}", address, command);
 			try {
-				HashMap<String, String> answer = JSON.parseObject(in.readLine(), HashMap.class);
-				result = RequestResult.fromString(answer.get("content"));
+				HashMap<String, Object> answer = JSON.parseObject(in.readLine(), HashMap.class);
+				result = RequestResult.valueOf((String)answer.get("content"));
 				if (result.equals(RequestResult.SUCCESS)) {
-					String name = answer.get("name");
+					String name = (String)answer.get("name");
 					Main.getProfileManager().getProfile().addViewableDevice(new ViewableDevice(host, port, name));
 					Main.getProfileManager().saveProfile();
 				}

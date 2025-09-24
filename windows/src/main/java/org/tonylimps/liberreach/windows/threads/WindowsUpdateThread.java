@@ -66,6 +66,5 @@ public class WindowsUpdateThread extends UpdateThread {
 	@Override
 	public void setPaths(List<CustomPath> paths) {
 		MainController.getInstance().setPaths(paths);
-		MainController.getInstance().updatePathsListview();
 	}
 }

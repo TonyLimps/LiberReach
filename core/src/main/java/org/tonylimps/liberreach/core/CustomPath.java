@@ -20,15 +20,21 @@ public class CustomPath {
 	public static final EmptyPath root = new EmptyPath();
 
 	private String deviceName;
-	private boolean directory;
 	private Path path;
 	private String stringPath;
 
-	private CustomPath() {
-	}
+	// MetaData
+	private boolean directory;
+	private long size;
+	private long lastModified;
+	private String type;
 
-	public CustomPath(String fullPath) {
+	private CustomPath() {}
+
+	// 从完整路径实例化
+	public CustomPath(String fullPath, boolean fillMetaData) {
 		String[] paths = fullPath.split(deviceSplit);
+
 		if (paths.length == 0) {
 			// ::
 			deviceName = "";
@@ -48,56 +54,108 @@ public class CustomPath {
 			deviceName = "";
 			path = new EmptyPath();
 		}
+
 		stringPath = path.toString();
+		if(fillMetaData) {
+			directory = path.equals(root) || Files.isDirectory(path);
+			if(directory) {
+				size = Long.MIN_VALUE;
+				type = "";
+				lastModified = path.equals(root)
+					? Long.MIN_VALUE
+					: path.toFile().lastModified();
+			}
+			else{
+				File file = path.toFile();
+				lastModified = file.lastModified();
+				size = file.length();
+				if(file.getName().contains(".")) {
+					type = file.getName().substring(file.getName().lastIndexOf("."));
+				}
+				else{
+					type = "";
+				}
+			}
+		}
 	}
 
+	// 复制一个对象，复制元数据
 	public CustomPath(CustomPath customPath) {
 		this.path = customPath.getPath();
 		this.stringPath = customPath.stringPath;
-		this.directory = customPath.directory;
 		this.deviceName = customPath.getDeviceName();
+		this.directory = customPath.directory;
+		this.size = customPath.size;
+		this.lastModified = customPath.lastModified;
+		this.type = customPath.type;
 	}
 
-	@JSONField(serialize = false)
-	public Path getPath() {
-		return path;
-	}
-
-	public String getDeviceName() {
-		return deviceName;
-	}
-
-	public CustomPath(String deviceName, Path path) {
+	// 根据设备名称和路径实例化一个对象
+	public CustomPath(String deviceName, Path path, boolean fillMetaData) {
 		this.deviceName = deviceName;
 		this.path = path;
 		stringPath = path.toString();
-		if (isRootPath()) {
-			directory = true;
-		}
-		else {
-			directory = Files.isDirectory(path);
+		if(fillMetaData){
+			directory = path.equals(root) || Files.isDirectory(path);
+			if(directory) {
+				size = Long.MIN_VALUE;
+				type = "";
+				lastModified = path.equals(root)
+					? Long.MIN_VALUE
+					: path.toFile().lastModified();
+			}
+			else{
+				File file = path.toFile();
+				lastModified = file.lastModified();
+				size = file.length();
+				if(file.getName().contains(".")) {
+					type = file.getName().substring(file.getName().lastIndexOf("."));
+				}
+				else{
+					type = "";
+				}
+			}
 		}
 	}
 
-	@JSONField(serialize = false)
-	public boolean isRootPath() {
-		return path.toString().endsWith(":" + WIN32SPLIT) || path.toString().equals(SPLIT);
-	}
-
+	// 从JSON字符串实例化，包含元数据
 	public static CustomPath fromJSONString(String jsonString) {
 		HashMap<String, Object> map = JSON.parseObject(jsonString, HashMap.class);
 		String deviceName = (String) map.get("deviceName");
-		boolean isDirectory = (boolean) map.get("directory");
 		String stringPath = (String) map.get("stringPath");
 		Path path = stringPath == null
 			? new EmptyPath()
 			: Paths.get(stringPath);
+		boolean directory = (boolean) map.get("directory");
+		long size = parseLong(map.get("size"));
+		long lastModified = parseLong(map.get("lastModified"));
+		String type = (String) map.get("type");
 		CustomPath result = new CustomPath();
 		result.deviceName = deviceName;
-		result.directory = isDirectory;
 		result.path = path;
 		result.stringPath = stringPath;
+		result.directory = directory;
+		result.size = size;
+		result.lastModified = lastModified;
+		result.type = type;
 		return result;
+	}
+
+	private static long parseLong(Object obj){
+		if(obj instanceof Long){
+			return (long) obj;
+		}
+		else if(obj instanceof Integer){
+			return ((Integer)obj).longValue();
+		}
+		else {
+			try{
+				return (long)obj;
+			}
+			catch (Exception e) {
+				return Long.MIN_VALUE;
+			}
+		}
 	}
 
 	public CustomPath enter(String name) {
@@ -122,16 +180,29 @@ public class CustomPath {
 		return customPath;
 	}
 
+	public File toFile() {
+		return path.toFile();
+	}
+
+	@JSONField(serialize = false)
+	public Path getPath() {
+		return path;
+	}
+
+	@JSONField(serialize = false)
+	// 是否是系统的根目录(比如windows的C:\ linux和mac的/)
+	public boolean isRootPath() {
+		return path.toString().endsWith(":" + WIN32SPLIT) || path.toString().equals(SPLIT);
+	}
+
+	@JSONField(serialize = false)
 	public String getFileName() {
 		return path.getFileName() == null
 			? path.toString()
 			: path.getFileName().toString();
 	}
 
-	public File toFile() {
-		return path.toFile();
-	}
-
+	@JSONField(deserialize = false)
 	public void setFullPath(CustomPath path) {
 		this.path = path.getPath();
 		this.deviceName = path.getDeviceName();
@@ -148,6 +219,10 @@ public class CustomPath {
 		return deviceName + deviceSplit + path.normalize();
 	}
 
+	public String getDeviceName() {
+		return deviceName;
+	}
+
 	public boolean isDirectory() {
 		return directory;
 	}
@@ -159,4 +234,29 @@ public class CustomPath {
 	public String getStringPath() {
 		return stringPath;
 	}
+
+	public long getSize() {
+		return size;
+	}
+
+	public void setSize(long size) {
+		this.size = size;
+	}
+
+	public long getLastModified() {
+		return lastModified;
+	}
+
+	public void setLastModified(long lastModified) {
+		this.lastModified = lastModified;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
 }
