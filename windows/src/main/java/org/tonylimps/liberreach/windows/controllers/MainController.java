@@ -109,7 +109,6 @@ public class MainController {
 		);
 		comparators.put(SIZED, Comparator
 			.comparing(CustomPath::isDirectory)
-			.reversed()
 			.thenComparing(CustomPath::getSize)
 			.reversed()
 		);
@@ -120,7 +119,6 @@ public class MainController {
 		);
 		comparators.put(LASTMODIFIEDD, Comparator
 			.comparing(CustomPath::isDirectory)
-			.reversed()
 			.thenComparing(CustomPath::getLastModified)
 			.reversed()
 		);
