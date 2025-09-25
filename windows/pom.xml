@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>windows</artifactId>
-    <version>${liberreach.windows.version}</version>
+    <version>${revision}</version>
     <name>windows</name>
     <packaging>jar</packaging>
 
@@ -16,8 +16,8 @@
     <parent>
         <groupId>org.tonylimps</groupId>
         <artifactId>liberreach</artifactId>
-        <version>1.0.0</version>
         <relativePath>../pom.xml</relativePath>
+        <version>${revision}</version>
     </parent>
 
     <dependencies>
@@ -38,7 +38,7 @@
         <dependency>
             <groupId>org.tonylimps.liberreach.core</groupId>
             <artifactId>core</artifactId>
-            <version>${liberreach.version}</version>
+            <version>${revision}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
