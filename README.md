@@ -33,19 +33,24 @@
 3.  输入地址和令牌，完成安全验证。
 
 ## 自定义语言包
-1.  将语言包文件（如 `liberreach_en.properties`）放置于 `CustomResources/LanguageBundles` 目录下。
+1.  将语言包文件（如 `liberreach_en.properties`）放置于 `core/src/main/resources/LanguageBundles` 目录下。
 2.  重启应用即可在设置中选择新的语言。
 
-## 🛠 从源码构建 (Windows)
+## 构建
 
-本项目提供了Windows原生发行版构建工具。
+### Gradle
 
-### 前提条件
+`gradle install`
+`gradle windows:run`
+
+### Windows发行版
+
+#### 前提条件
 -   JDK 17+
 -   JavaFX SDK 17.0.16
 -   GCC (MinGW-w64)
 
-### 构建步骤
+#### 构建步骤
 1.  **编译构建工具**:
     ```bash
     gcc -o rebuild.exe windows/src/rebuild/rebuild.c
@@ -55,7 +60,7 @@
     ```bash
     rebuild.exe <path-to-jar> <path-to-javafx-sdk> <path-to-launch.c> <path-to-gcc>
     ```
-    -   `path-to-jar`: Windows 模块打包后的 JAR 文件路径。
+    -   `path-to-jar`: windows 模块打包后的 JAR 文件路径。
     -   `path-to-javafx-sdk`: JavaFX SDK 根目录路径。
     -   `path-to-launch.c`: `windows/src/launch/launch.c` 文件路径。
     -   `path-to-gcc`: `gcc.exe` 编译器路径（如 `C:\mingw64\bin\`）。
@@ -66,4 +71,4 @@
 
 ---
 
-© 2025 Tony Limps
+© 2025-2026 Tony Limps
