@@ -3,17 +3,15 @@ package org.tonylimps.liberreach.windows.threads;
 import javafx.application.Platform;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.tonylimps.liberreach.core.Core;
+import org.tonylimps.liberreach.core.AppContext;
+import org.tonylimps.liberreach.core.Util;
 import org.tonylimps.liberreach.core.CustomPath;
-import org.tonylimps.liberreach.core.Profile;
-import org.tonylimps.liberreach.core.managers.ExceptionManager;
 import org.tonylimps.liberreach.core.threads.UpdateThread;
 import org.tonylimps.liberreach.windows.Main;
 import org.tonylimps.liberreach.windows.controllers.MainController;
 import org.tonylimps.liberreach.windows.controllers.SettingsController;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /*
@@ -25,22 +23,20 @@ public class WindowsUpdateThread extends UpdateThread {
 
 	private final Logger logger = LogManager.getLogger(getClass());
 
-	public WindowsUpdateThread(ExceptionManager exceptionManager, AtomicBoolean running, Profile profile) {
-		this.exceptionManager = exceptionManager;
-		this.running = running;
-		this.profile = profile;
-		updateDelayMillis = Integer.parseInt(Core.getConfig("uiUpdateDelayMillis"));
+	public WindowsUpdateThread(AppContext context) {
+		this.context = context;
+		updateDelayMillis = Util.getAppConfig("uiUpdateDelayMillis", int.class);
 	}
 
 	@Override
 	public void run() {
-		while (running.get()) {
+		while (context.running.get()) {
 			try {
 				Thread.sleep(updateDelayMillis);
 			}
 			catch (InterruptedException e) {
 				logger.error(e);
-				exceptionManager.throwException(e);
+				context.exceptionManager.throwException(e);
 			}
 			Platform.runLater(() -> {
 				updateDevicesLists();

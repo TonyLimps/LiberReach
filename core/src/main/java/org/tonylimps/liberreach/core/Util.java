@@ -8,10 +8,7 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,41 +16,55 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.tonylimps.liberreach.core.enums.CommandType.DOWNLOAD;
 
-/**<h1>Core</h1>
- * <p>此软件的核心功能</p>
+/**<h1>Util</h1>
+ * <p>软件工具类</p>
  * @author Tony Limps
  * @since 2025
  */
 
-public class Core {
-
+public class Util {
 	private static final String HASH_ALGORITHM = "SHA3-256";
 	private static final String ENCRYPT_ALGORITHM = "AES";
 	private static final String AES_TRANSFORMATION = "AES/ECB/PKCS5Padding";
 
 	/**
-	 * <p>获取配置</p>
+	 * <p>获取软件配置</p>
 	 * @param key config.properties中的键
-	 * @return 在config.properties中的值
 	 */
-	public static String getConfig(String key) {
-		return ResourceBundle.getBundle("config").getString(key);
+	@SuppressWarnings("unchecked")
+	public static <T> T getAppConfig(String key, Class<T> type) {
+		String cfg = ResourceBundle.getBundle("config").getString(key);
+
+		if (type == String.class) {
+			return (T) cfg;
+		} else if (type == Integer.class || type == int.class) {
+			return (T) Integer.valueOf(cfg);
+		} else if (type == Long.class || type == long.class) {
+			return (T) Long.valueOf(cfg);
+		} else if (type == Double.class || type == double.class) {
+			return (T) Double.valueOf(cfg);
+		} else if (type == Boolean.class || type == boolean.class) {
+			return (T) Boolean.valueOf(cfg);
+		} else if (type == Float.class || type == float.class) {
+			return (T) Float.valueOf(cfg);
+		} else {
+			throw new IllegalArgumentException("Unsupported type: " + type);
+		}
 	}
+
+	public static String getAppConfig(String key) {
+		return getAppConfig(key, String.class);
+	}
+
 	/** <p>加密字符串</p>
 	 * <p>不安全，仅用作识别设备</p>
 	 * @param data 需要加密的数据
 	 * @param stringKey 密钥
 	 * @return String 加密后的数据
-	 * @throws NoSuchPaddingException
-	 * @throws NoSuchAlgorithmException
-	 * @throws IllegalBlockSizeException
-	 * @throws BadPaddingException
-	 * @throws InvalidKeyException
 	 */
 	public static String encrypt(String data, String stringKey) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
 		byte[] key = stringKey.getBytes();
@@ -68,11 +79,6 @@ public class Core {
 	 * @param data 需要加密的数据
 	 * @param stringKey 密钥
 	 * @return String 解密后的数据
-	 * @throws NoSuchPaddingException
-	 * @throws NoSuchAlgorithmException
-	 * @throws IllegalBlockSizeException
-	 * @throws BadPaddingException
-	 * @throws InvalidKeyException
 	 */
 	public static String decrypt(String data, String stringKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 		byte[] key = stringKey.getBytes();
@@ -89,12 +95,11 @@ public class Core {
 	 * @return 堆栈信息
 	 */
 	public static String getExceptionStackTrace(Exception e) {
-		ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
-		PrintStream originalErrorStream = System.err;
-		System.setErr(new PrintStream(errorStream));
-		e.printStackTrace();
-		System.setErr(originalErrorStream);
-		return errorStream.toString();
+		StringWriter stringWriter = new StringWriter();
+		PrintWriter printWriter = new PrintWriter(stringWriter);
+		e.printStackTrace(printWriter);
+		printWriter.flush();
+		return stringWriter.toString();
 	}
 
 	/**
@@ -116,7 +121,6 @@ public class Core {
 	/**
 	 * <p>创建256位随机令牌</p>
 	 * @return 令牌
-	 * @throws NoSuchAlgorithmException
 	 */
 	public static String createToken() throws NoSuchAlgorithmException {
 		String random = hashEncrypt(String.valueOf(new SecureRandom().nextLong()));
@@ -128,7 +132,6 @@ public class Core {
 	 * <p>散列函数</p>
 	 * @param data 源数据
 	 * @return 哈希值 String
-	 * @throws NoSuchAlgorithmException
 	 */
 	public static String hashEncrypt(String data) throws NoSuchAlgorithmException {
 		MessageDigest sha3Digest = MessageDigest.getInstance(HASH_ALGORITHM);
@@ -166,7 +169,6 @@ public class Core {
 	/**
 	 * 获取本机地址
 	 * @return 地址
-	 * @throws UnknownHostException
 	 */
 	public static String getHostAddress() throws UnknownHostException {
 		InetAddress address = InetAddress.getLocalHost();
@@ -177,7 +179,6 @@ public class Core {
 	 * <p>获取IPv6公网地址</p>
 	 * <p>没有公网v6返回null</p>
 	 * @return 地址
-	 * @throws SocketException
 	 */
 	public static String getHostAddress6(){
 		try{
@@ -269,10 +270,10 @@ public class Core {
 			List<String> existsFiles = Files.list(targetPath)
 				.map(p -> p.getFileName().toString())
 				.toList();
-			fileName = Core.rename(fileName, existsFiles);
+			fileName = Util.rename(fileName, existsFiles);
 		}
 		catch (IOException e){
-
+			// ignore
 		}
 		Path targetFilePath = targetPath.resolve(fileName);
 		File file = targetFilePath.toFile();
@@ -280,7 +281,7 @@ public class Core {
 		fr.createFile();
 		fr.createServerSocket();
 		int port = fr.getPort();
-		commandThread.send(Core.createCommand(
+		commandThread.send(Util.createCommand(
 			"type", DOWNLOAD,
 			"path", path.toString(),
 			"port", port,

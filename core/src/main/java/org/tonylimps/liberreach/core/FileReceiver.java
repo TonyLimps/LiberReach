@@ -47,7 +47,7 @@ public class FileReceiver {
 		this.file = file;
 		this.address = address;
 		this.hashCode = hashCode;
-		pieceSize = Integer.parseInt(Core.getConfig("filePieceSize"));
+		pieceSize = Util.getAppConfig("filePieceSize", int.class);
 	}
 
 	public boolean createServerSocket() {
@@ -55,8 +55,7 @@ public class FileReceiver {
 			serverSocket = new ServerSocket(0);
 			port = serverSocket.getLocalPort();
 			return true;
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			logger.error("Connect file sender failed.", e);
 			return false;
 		}
@@ -72,8 +71,7 @@ public class FileReceiver {
 			fo = new FileOutputStream(file, false); // false表示覆盖模式
 			fo = new FileOutputStream(file);
 			return true;
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			logger.error("Create file failed.", e);
 			return false;
 		}
@@ -91,8 +89,7 @@ public class FileReceiver {
 			int hashCode = dis.readInt();
 			if (hashCode == this.hashCode) {
 				dos.writeBoolean(true);
-			}
-			else {
+			} else {
 				dos.writeBoolean(false);
 			}
 			totalSize = dis.readLong();
@@ -106,28 +103,24 @@ public class FileReceiver {
 				int size = dis.readInt();
 				dis.readFully(buffer, 0, size);
 				String hash = dis.readUTF();
-				String localHash = Core.hashEncrypt(new String(buffer, 0, size));
+				String localHash = Util.hashEncrypt(new String(buffer, 0, size));
 				if (hash.equals(localHash)) {
 					long usedTimeMillis = System.currentTimeMillis() - startTime;
-					bytesPerSecond = usedTimeMillis == 0
-						? 0
-						: (long) (size * 1000.0 / usedTimeMillis);
+					bytesPerSecond = usedTimeMillis == 0 ? 0 : (long) (size * 1000.0 / usedTimeMillis);
 					downloadedSize += size;
 					progress = (double) downloadedSize / totalSize;
 					dos.writeBoolean(true);
 					fo.write(buffer, 0, size);
-					logger.info("Downloading {} Progress: {}/{} Speed: {}", file.getName(), piece, totalPieces, Core.formatSpeed(bytesPerSecond));
+					logger.info("Downloading {} Progress: {}/{} Speed: {}", file.getName(), piece, totalPieces, Util.formatSpeed(bytesPerSecond));
 					i += 1;
-				}
-				else {
+				} else {
 					dos.writeBoolean(false);
 				}
 			}
 			socket.close();
 			fo.close();
 			logger.info("Download {} success.", file.getName());
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			logger.error("Error receiving file.", e);
 		}
 	}

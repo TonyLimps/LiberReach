@@ -2,11 +2,12 @@ package org.tonylimps.liberreach.core.threads;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.tonylimps.liberreach.core.Core;
-import org.tonylimps.liberreach.core.Profile;
+import org.tonylimps.liberreach.core.AppContext;
+import org.tonylimps.liberreach.core.Util;
+import org.tonylimps.liberreach.core.Config;
 import org.tonylimps.liberreach.core.Token;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
-import org.tonylimps.liberreach.core.managers.ProfileManager;
+import org.tonylimps.liberreach.core.managers.ConfigManager;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -21,28 +22,22 @@ public class HeartBeatThread extends Thread {
 	private final Logger logger = LogManager.getLogger(getClass());
 	private final AtomicBoolean running;
 
-	private final Profile profile;
-	private final ProfileManager profileManager;
+	private final Config config;
+	private final ConfigManager configManager;
 	private final UpdateThread updateThread;
 	private final int heartBeatDelayMillis;
 	private final ExceptionManager exceptionManager;
 	private final Token token;
 
-	public HeartBeatThread(
-		ExceptionManager exceptionManager,
-		AtomicBoolean running,
-		ProfileManager profileManager,
-		Token token,
-		UpdateThread updateThread
-	)
+	public HeartBeatThread(AppContext context, UpdateThread updateThread)
 	{
-		this.profileManager = profileManager;
-		this.profile = profileManager.getProfile();
-		this.running = running;
+		this.configManager = context.configManager;
+		this.config = configManager.getConfig();
+		this.running = context.running;
 		this.updateThread = updateThread;
-		this.exceptionManager = exceptionManager;
-		this.heartBeatDelayMillis = Integer.parseInt(Core.getConfig("heartBeatDelayMillis"));
-		this.token = token;
+		this.exceptionManager = context.exceptionManager;
+		this.token = context.token;
+		this.heartBeatDelayMillis = Util.getAppConfig("heartBeatDelayMillis", int.class);
 	}
 
 	@Override
@@ -50,7 +45,7 @@ public class HeartBeatThread extends Thread {
 		while (running.get()) {
 			try {
 				// 每隔一段时间遍历可查看设备，发送心跳命令，send方法会自动更新在线状态
-				profile.getViewableDevices().values()
+				config.getViewableDevices().values()
 					.forEach(device -> {
 						ViewableCommandThread commandThread = device.getCommandThread();
 						try {
@@ -58,7 +53,7 @@ public class HeartBeatThread extends Thread {
 								commandThread = new ViewableCommandThread(
 									device,
 									exceptionManager,
-									profileManager,
+									configManager,
 									running,
 									token,
 									updateThread
@@ -66,7 +61,7 @@ public class HeartBeatThread extends Thread {
 								commandThread.start();
 								device.setCommandThread(commandThread);
 							}
-							commandThread.send(Core.createCommand("type", HEARTBEAT));
+							commandThread.send(Util.createCommand("type", HEARTBEAT));
 						}
 						catch (Exception e) {
 							commandThread.error(e);

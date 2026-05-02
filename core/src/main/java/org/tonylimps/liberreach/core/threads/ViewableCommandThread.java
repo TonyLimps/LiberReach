@@ -3,14 +3,14 @@ package org.tonylimps.liberreach.core.threads;
 import com.alibaba.fastjson2.JSON;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.tonylimps.liberreach.core.Core;
+import org.tonylimps.liberreach.core.Util;
 import org.tonylimps.liberreach.core.CustomPath;
 import org.tonylimps.liberreach.core.Token;
 import org.tonylimps.liberreach.core.ViewableDevice;
 import org.tonylimps.liberreach.core.enums.CommandType;
 import org.tonylimps.liberreach.core.enums.RequestResult;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
-import org.tonylimps.liberreach.core.managers.ProfileManager;
+import org.tonylimps.liberreach.core.managers.ConfigManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,7 +34,7 @@ public class ViewableCommandThread extends CommandThread {
 	public ViewableCommandThread(
 		ViewableDevice device,
 		ExceptionManager exceptionManager,
-		ProfileManager profileManager,
+		ConfigManager configManager,
 		AtomicBoolean running,
 		Token token,
 		UpdateThread updateThread
@@ -43,11 +43,11 @@ public class ViewableCommandThread extends CommandThread {
 		try {
 			this.device = device;
 			this.address = device.getAddress();
-			Socket socket = new Socket(address.getHostAddress(), Integer.parseInt(Core.getConfig("defaultPort")));
+			Socket socket = new Socket(address.getHostAddress(), Util.getAppConfig("defaultPort", int.class));
 			this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			this.out = new PrintWriter(socket.getOutputStream(), true);
-			this.profileManager = profileManager;
-			this.profile = profileManager.getProfile();
+			this.configManager = configManager;
+			this.config = configManager.getConfig();
 			this.running = running;
 			this.exceptionManager = exceptionManager;
 			this.token = token;
@@ -70,11 +70,11 @@ public class ViewableCommandThread extends CommandThread {
 				case ADD -> {
 					if (command.get("content").equals(RequestResult.SUCCESS.name())) {
 						String name = (String)command.get("name");
-						profile.addViewableDevice(new ViewableDevice(address.getHostAddress(), Integer.parseInt(Core.getConfig("defaultPort")), name));
+						config.addViewableDevice(new ViewableDevice(address.getHostAddress(), Util.getAppConfig("defaultPort", int.class), name));
 					}
 				}
 				case HEARTBEAT -> {
-					ViewableDevice viewableDevice = profile.getViewableDevices().get(device.getRemarkName());
+					ViewableDevice viewableDevice = config.getViewableDevices().get(device.getRemarkName());
 					if (viewableDevice != null) {
 						viewableDevice.setOnline((boolean)command.get("online"));
 						viewableDevice.setAuthorized((boolean)command.get("authorized"));

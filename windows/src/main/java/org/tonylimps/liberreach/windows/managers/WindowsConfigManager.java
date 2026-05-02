@@ -3,9 +3,9 @@ package org.tonylimps.liberreach.windows.managers;
 import com.alibaba.fastjson2.JSON;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.tonylimps.liberreach.core.Core;
-import org.tonylimps.liberreach.core.Profile;
-import org.tonylimps.liberreach.core.managers.ProfileManager;
+import org.tonylimps.liberreach.core.Config;
+import org.tonylimps.liberreach.core.Util;
+import org.tonylimps.liberreach.core.managers.ConfigManager;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -21,14 +21,14 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 
-public class WindowsProfileManager implements ProfileManager {
+public class WindowsConfigManager implements ConfigManager {
 
 	private final Logger logger = LogManager.getLogger(getClass());
 	private final WindowsExceptionManager exceptionManager;
 	private final String UUID;
-	private Profile profile;
+	private Config config;
 
-	public WindowsProfileManager(WindowsExceptionManager exceptionManager) {
+	public WindowsConfigManager(WindowsExceptionManager exceptionManager) {
 		try {
 			this.UUID = getUUID();
 			this.exceptionManager = exceptionManager;
@@ -36,7 +36,7 @@ public class WindowsProfileManager implements ProfileManager {
 		catch (IOException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
-		initProfile();
+		initConfig();
 	}
 
 	@Override
@@ -54,36 +54,36 @@ public class WindowsProfileManager implements ProfileManager {
 	}
 
 	@Override
-	public void initProfile() {
-		File profileFile = new File("profile.dat");
-		if (!profileFile.exists()) {
+	public void initConfig() {
+		File configFile = new File("config.dat");
+		if (!configFile.exists()) {
 			// 如果配置文件不存在就新建配置文件
-			createNewProfile();
-			logger.info("Created new profile.");
+			createNewConfig();
+			logger.info("Created new config.");
 		}
-		try (FileInputStream fileInputStream = new FileInputStream(profileFile)) {
+		try (FileInputStream fileInputStream = new FileInputStream(configFile)) {
 			// 尝试读取配置文件
-			String encryptedProfileString = new String(fileInputStream.readAllBytes());
-			logger.info("Read profile.");
+			String encryptedConfigString = new String(fileInputStream.readAllBytes());
+			logger.info("Read config.");
 			//使用本机的机器码解密
-			String decryptedProfileString = Core.decrypt(encryptedProfileString, UUID);
-			logger.info("Decrypt profile.");
+			String decryptedConfigString = Util.decrypt(encryptedConfigString, UUID);
+			logger.info("Decrypt config.");
 			// 解析配置
 			try {
-				// profile = JSON.parseObject(decryptedProfileString, Profile.class);
-				profile = Profile.fromJSON(decryptedProfileString);
+				// config = JSON.parseObject(decryptedConfigString, Config.class);
+				config = Config.fromJSON(decryptedConfigString);
 			}
 			catch (Exception e) {
-				logger.fatal("Parse profile failed.", e);
+				logger.fatal("Parse config failed.", e);
 				throw new RuntimeException(e);
 			}
 
-			logger.info("Parsed profile.");
+			logger.info("Parsed config.");
 		}
 		catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException |
 			   BadPaddingException e) {
 			// 有解密异常说明更换了设备，需要重新创建配置
-			createNewProfile();
+			createNewConfig();
 		}
 		catch (Exception e) {
 			logger.error(e);
@@ -92,12 +92,12 @@ public class WindowsProfileManager implements ProfileManager {
 	}
 
 	@Override
-	public void createNewProfile() {
+	public void createNewConfig() {
 		try {
-			Path path = Paths.get("profile.dat");
+			Path path = Paths.get("config.dat");
 			// 创建一个新的配置并用本机机器码加密
-			Profile emptyProfile = Profile.getEmptyProfile(getDeviceName());
-			String encryptedString = Core.encrypt(emptyProfile.toJSONString(), UUID);
+			Config emptyConfig = Config.createEmptyConfig(getDeviceName());
+			String encryptedString = Util.encrypt(emptyConfig.toJSONString(), UUID);
 			byte[] encryptedBytes = encryptedString.getBytes();
 			// 不存在则创建，存在则覆盖
 			Files.write(path, encryptedBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
@@ -114,11 +114,11 @@ public class WindowsProfileManager implements ProfileManager {
 	}
 
 	@Override
-	public void saveProfile() {
+	public void saveConfig() {
 		try {
-			Path path = Paths.get("profile.dat");
-			String profileString = JSON.toJSONString(profile);
-			String encryptedString = Core.encrypt(profileString, UUID);
+			Path path = Paths.get("config.dat");
+			String configString = JSON.toJSONString(config);
+			String encryptedString = Util.encrypt(configString, UUID);
 			byte[] encryptedBytes = encryptedString.getBytes();
 			Files.write(path, encryptedBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 		}
@@ -129,7 +129,7 @@ public class WindowsProfileManager implements ProfileManager {
 	}
 
 	@Override
-	public Profile getProfile() {
-		return profile;
+	public Config getConfig() {
+		return config;
 	}
 }

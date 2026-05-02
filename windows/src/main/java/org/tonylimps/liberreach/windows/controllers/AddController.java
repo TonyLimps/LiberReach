@@ -9,7 +9,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.tonylimps.liberreach.core.Core;
+import org.tonylimps.liberreach.core.Util;
 import org.tonylimps.liberreach.core.ViewableDevice;
 import org.tonylimps.liberreach.core.enums.RequestResult;
 import org.tonylimps.liberreach.windows.Main;
@@ -48,7 +48,7 @@ public class AddController {
 		Platform.runLater(() -> {
 			Stage stage = WindowManager.getStage("add");
 			stage.setOnCloseRequest(event -> WindowManager.hide("add"));
-			stage.setTitle(Main.getResourceBundleManager().getBundle().getString("add.title"));
+			stage.setTitle(Main.getContext().bundleManager.getBundle().getString("add.title"));
 		});
 	}
 
@@ -64,21 +64,21 @@ public class AddController {
 		}
 		catch (Exception e) {
 			logger.error("Parse address {} failed.", host, e);
-			Main.getExceptionManager().throwException(e);
+			Main.getContext().exceptionManager.throwException(e);
 			return;
 		}
 
 		String token = tokenArea.getText();
-		int soTimeout = Integer.parseInt(Core.getConfig("soTimeout"));
+		int soTimeout = Util.getAppConfig("soTimeout", int.class);
 		RequestResult result;
-		int port = Integer.parseInt(Core.getConfig("defaultPort"));
+		int port = Util.getAppConfig("defaultPort", int.class);
 		try (Socket socket = new Socket(host, port)) {
 			logger.info("Connected to {}", address);
 
 			socket.setSoTimeout(soTimeout);
 			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			String command = Core.createCommand("type", ADD, "token", token, "name", Main.getProfileManager().getProfile().getDeviceName());
+			String command = Util.createCommand("type", ADD, "token", token, "name", Main.getContext().configManager.getConfig().getDeviceName());
 			out.println(command);
 
 			logger.info("Sent to {} :\n{}", address, command);
@@ -87,8 +87,8 @@ public class AddController {
 				result = RequestResult.valueOf((String)answer.get("content"));
 				if (result.equals(RequestResult.SUCCESS)) {
 					String name = (String)answer.get("name");
-					Main.getProfileManager().getProfile().addViewableDevice(new ViewableDevice(host, port, name));
-					Main.getProfileManager().saveProfile();
+					Main.getContext().configManager.getConfig().addViewableDevice(new ViewableDevice(host, port, name));
+					Main.getContext().configManager.saveConfig();
 				}
 			}
 			catch (Exception e) {
@@ -106,7 +106,7 @@ public class AddController {
 
 	private static Alert getAlert(RequestResult result) {
 		Alert alert = null;
-		ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
+		ResourceBundle bundle = Main.getContext().bundleManager.getBundle();
 		switch (result) {
 			case SUCCESS -> {
 				alert = new Alert(Alert.AlertType.INFORMATION);

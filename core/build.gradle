@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+}
+
+group = 'org.tonylimps.liberreach.core'
+description = 'core'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    implementation libs.alibaba.fastjson2
+    implementation libs.apache.logging.log4j.api
+    implementation libs.apache.logging.log4j.core
+    implementation libs.guava
+}
+
+repositories {
+    mavenCentral()
+}

@@ -12,7 +12,6 @@ import javafx.scene.input.MouseEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.tonylimps.liberreach.core.*;
-import org.tonylimps.liberreach.core.enums.SortMethod;
 import org.tonylimps.liberreach.core.threads.ViewableCommandThread;
 import org.tonylimps.liberreach.windows.Main;
 import org.tonylimps.liberreach.windows.annotations.FixedWidth;
@@ -25,13 +24,11 @@ import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
 
 import static org.tonylimps.liberreach.core.enums.CommandType.GETPATH;
 
-import static org.tonylimps.liberreach.core.enums.SortMethod.*;
 
 public class MainController {
 
@@ -72,15 +69,14 @@ public class MainController {
 	// sort
 	@FXML MenuItem sortByName;
 	@FXML MenuItem sortByType;
-	@FXML MenuItem sortBySizeI;
-	@FXML MenuItem sortBySizeD;
-	@FXML MenuItem sortByLastModifiedI;
-	@FXML MenuItem sortByLastModifiedD;
+	@FXML MenuItem sortBySize;
+	@FXML MenuItem sortBySizeReserve;
+	@FXML MenuItem sortByLastModified;
+	@FXML MenuItem sortByLastModifiedReserve;
 
 	private CustomPath currentPath = new CustomPath("",false);
 	private List<CustomPath> paths;
-	private SortMethod sortMethod = NAME;
-	private static final HashMap<SortMethod, Comparator<CustomPath>> comparators = new HashMap<>();
+	private Comparator<CustomPath> comparator;
 
 	public static MainController getInstance() {
 		return instance;
@@ -89,51 +85,19 @@ public class MainController {
 	@FXML
 	private void initialize() {
 		instance = this;
-		ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
-		Profile profile = Main.getProfileManager().getProfile();
-
-		comparators.put(NAME, Comparator
-			.comparing(CustomPath::isDirectory)
-			.reversed()
-			.thenComparing(CustomPath::getFileName)
-		);
-		comparators.put(TYPE, Comparator
-			.comparing(CustomPath::isDirectory)
-			.reversed()
-			.thenComparing(CustomPath::getType)
-		);
-		comparators.put(SIZEI, Comparator
-			.comparing(CustomPath::isDirectory)
-			.reversed()
-			.thenComparing(CustomPath::getSize)
-		);
-		comparators.put(SIZED, Comparator
-			.comparing(CustomPath::isDirectory)
-			.thenComparing(CustomPath::getSize)
-			.reversed()
-		);
-		comparators.put(LASTMODIFIEDI, Comparator
-			.comparing(CustomPath::isDirectory)
-			.reversed()
-			.thenComparing(CustomPath::getLastModified)
-		);
-		comparators.put(LASTMODIFIEDD, Comparator
-			.comparing(CustomPath::isDirectory)
-			.thenComparing(CustomPath::getLastModified)
-			.reversed()
-		);
-
+		ResourceBundle bundle = Main.getContext().bundleManager.getBundle();
+		Config config = Main.getContext().configManager.getConfig();
 		Platform.runLater(() -> {
 			try {
-				nameLabel.setText(bundle.getString("main.label.deviceName") + " " + profile.getDeviceName());
-				addressField.setText(Core.getHostAddress());
-				String address6 = Core.getHostAddress6();
+				nameLabel.setText(bundle.getString("main.label.deviceName") + " " + config.getDeviceName());
+				addressField.setText(Util.getHostAddress());
+				String address6 = Util.getHostAddress6();
 				address6Field.setText(address6 == null ? bundle.getString("main.label.haveNotIPv6Address") : address6);
 			}
 			catch (UnknownHostException e) {
 				addressField.setText(e.getMessage());
 				logger.error(e);
-				Main.getExceptionManager().throwException(e);
+				Main.getContext().exceptionManager.throwException(e);
 			}
 			WindowManager.getStage("main").setTitle(bundle.getString("main.title"));
 			WindowManager.getStage("main").setOnCloseRequest(event -> Main.exit(0));
@@ -141,12 +105,12 @@ public class MainController {
 			singleFocusHandler.handle(getInstance());
 			FixedWidthHandler fixedWidthHandler = new FixedWidthHandler();
 			fixedWidthHandler.handle(getInstance());
-			sortByName.setOnAction(event -> {sortMethod = NAME;updateCurrentPath();});
-			sortByType.setOnAction(event -> {sortMethod = TYPE;updateCurrentPath();});
-			sortBySizeI.setOnAction(event -> {sortMethod = SIZEI;updateCurrentPath();});
-			sortBySizeD.setOnAction(event -> {sortMethod = SIZED;updateCurrentPath();});
-			sortByLastModifiedI.setOnAction(event -> {sortMethod = LASTMODIFIEDI;updateCurrentPath();});
-			sortByLastModifiedD.setOnAction(event -> {sortMethod = LASTMODIFIEDD;updateCurrentPath();});
+			sortByName.setOnAction(event -> {comparator = Comparators.name;updateCurrentPath();});
+			sortByType.setOnAction(event -> {comparator = Comparators.type;updateCurrentPath();});
+			sortBySize.setOnAction(event -> {comparator = Comparators.size;updateCurrentPath();});
+			sortBySizeReserve.setOnAction(event -> {comparator = Comparators.sizeReserve;updateCurrentPath();});
+			sortByLastModified.setOnAction(event -> {comparator = Comparators.lastModified;updateCurrentPath();});
+			sortByLastModifiedReserve.setOnAction(event -> {comparator = Comparators.lastModifiedReserve;updateCurrentPath();});
 		});
 	}
 
@@ -163,7 +127,7 @@ public class MainController {
 	@FXML
 	private void onAuthorizedListviewClick() {
 		AuthorizedDevice authorizedDevice = authorizedList.getSelectionModel().getSelectedItem();
-		ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
+		ResourceBundle bundle = Main.getContext().bundleManager.getBundle();
 		if (authorizedDevice == null) {
 			authorizationMenuItem.setDisable(true);
 			return;
@@ -185,15 +149,15 @@ public class MainController {
 			if (viewableDevice == null) {
 				return;
 			}
-			ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
+			ResourceBundle bundle = Main.getContext().bundleManager.getBundle();
 			if (!viewableDevice.isAuthorized()) {
 				Exception exception = new Exception(bundle.getString("main.fileError.accessDenied"));
-				Main.getExceptionManager().throwException(exception);
+				Main.getContext().exceptionManager.throwException(exception);
 				return;
 			}
 			if (!viewableDevice.isOnline()) {
 				Exception exception = new Exception(bundle.getString("main.fileError.notOnline"));
-				Main.getExceptionManager().throwException(exception);
+				Main.getContext().exceptionManager.throwException(exception);
 				return;
 			}
 			currentPath = new CustomPath(viewableDevice.getRemarkName() + "::", false);
@@ -203,14 +167,14 @@ public class MainController {
 
 	@FXML
 	private void onRemoveAuthorizedDeviceMenuItemAction() {
-		Main.getProfileManager().getProfile().removeAuthorizedDevice(authorizedList.getSelectionModel().getSelectedItem().getRemarkName());
-		Main.getProfileManager().saveProfile();
+		Main.getContext().configManager.getConfig().removeAuthorizedDevice(authorizedList.getSelectionModel().getSelectedItem().getRemarkName());
+		Main.getContext().configManager.saveConfig();
 	}
 
 	@FXML
 	private void onRemoveViewableDeviceMenuItemAction(){
-		Main.getProfileManager().getProfile().removeViewableDevice(viewableList.getSelectionModel().getSelectedItem().getRemarkName());
-		Main.getProfileManager().saveProfile();
+		Main.getContext().configManager.getConfig().removeViewableDevice(viewableList.getSelectionModel().getSelectedItem().getRemarkName());
+		Main.getContext().configManager.saveConfig();
 	}
 
 	@FXML
@@ -245,7 +209,7 @@ public class MainController {
 	private void onAuthorizationMenuItemAction() {
 		AuthorizedDevice device = authorizedList.getSelectionModel().getSelectedItem();
 		device.setAuthorized(!device.isAuthorized());
-		Main.getProfileManager().saveProfile();
+		Main.getContext().configManager.saveConfig();
 	}
 
 	@FXML
@@ -257,21 +221,21 @@ public class MainController {
 	private void onDownloadButtonAction() {
 		String fileName = pathsListView.getSelectionModel().getSelectedItem().getFileName();
 		CustomPath path = currentPath.enter(fileName);
-		Path targetPath = Paths.get(Main.getProfileManager().getProfile().getDefaultDownloadPath());
+		Path targetPath = Paths.get(Main.getContext().configManager.getConfig().getDefaultDownloadPath());
 		String deviceName = currentPath.getDeviceName();
-		ViewableDevice device = Main.getProfileManager().getProfile().getViewableDevices().get(deviceName);
-		Core.downloadFile(device, path, targetPath);
+		ViewableDevice device = Main.getContext().configManager.getConfig().getViewableDevices().get(deviceName);
+		Util.downloadFile(device, path, targetPath);
 	}
 
 	public void setPaths(List<CustomPath> paths) {
 		this.paths = paths;
-		MainController.getInstance().updatePathsListview();
+		getInstance().updatePathsListview();
 	}
 
 	private void setCurrentPath(CustomPath newPath) {
 		try {
 			String deviceName = newPath.getDeviceName();
-			ViewableDevice device = Main.getProfileManager().getProfile().getViewableDevices().get(deviceName);
+			ViewableDevice device = Main.getContext().configManager.getConfig().getViewableDevices().get(deviceName);
 			if (device == null) {
 				setCurrentPath(currentPath);
 				return;
@@ -281,11 +245,11 @@ public class MainController {
 				setCurrentPath(currentPath);
 				return;
 			}
-			String command = Core.createCommand(
+			String command = Util.createCommand(
 				"type", GETPATH,
 				"path", newPath.toString()
 			);
-			ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
+			ResourceBundle bundle = Main.getContext().bundleManager.getBundle();
 			setPathsListViewMessage(bundle.getString("main.wait"));
 			commandThread.send(command);
 			pathField.setText(newPath.toString());
@@ -300,7 +264,7 @@ public class MainController {
 	public void updatePathsListview() {
 		Platform.runLater(() -> {
 			SortedList<CustomPath> sortedList = new SortedList<>(FXCollections.observableArrayList(paths));
-			sortedList.setComparator(comparators.get(sortMethod));
+			sortedList.setComparator(comparator);
 			pathsListView.setItems(sortedList);
 			pathsListView.setCellFactory(param -> new ListCell<>() {
 				@Override
@@ -315,8 +279,8 @@ public class MainController {
 					}
 
 					setText(path.getFileName());
-					String fileColor = Core.getConfig("fileColor");
-					String folderColor = Core.getConfig("folderColor");
+					String fileColor = Util.getAppConfig("fileColor");
+					String folderColor = Util.getAppConfig("folderColor");
 
 					if (path.isDirectory()) {
 						setStyle("-fx-text-fill: " + folderColor + ";");
@@ -330,14 +294,14 @@ public class MainController {
 		});
 	}
 
-	public void setSortMethod(SortMethod sortMethod) {
-		this.sortMethod = sortMethod;
+	public void setComparator(Comparator<CustomPath> comparator) {
+		this.comparator = comparator;
 		MainController.getInstance().updateCurrentPath();
 	}
 
 	public void updateDevicesLists() {
-		List<ViewableDevice> viewableDevices = Main.getProfileManager().getProfile().getViewableDevices().values().stream().toList();
-		List<AuthorizedDevice> authorizedDevices = Main.getProfileManager().getProfile().getAuthorizedDevices().values().stream().toList();
+		List<ViewableDevice> viewableDevices = Main.getContext().configManager.getConfig().getViewableDevices().values().stream().toList();
+		List<AuthorizedDevice> authorizedDevices = Main.getContext().configManager.getConfig().getAuthorizedDevices().values().stream().toList();
 
 		if (!viewableDevices.equals(viewableList.getItems())) {
 			viewableList.setItems(FXCollections.observableList(viewableDevices));
@@ -346,9 +310,9 @@ public class MainController {
 			authorizedList.setItems(FXCollections.observableList(authorizedDevices));
 		}
 
-		String offlineColor = Core.getConfig("offlineColor");
-		String unauthorizedColor = Core.getConfig("unauthorizedColor");
-		String authorizedColor = Core.getConfig("authorizedColor");
+		String offlineColor = Util.getAppConfig("offlineColor");
+		String unauthorizedColor = Util.getAppConfig("unauthorizedColor");
+		String authorizedColor = Util.getAppConfig("authorizedColor");
 
 		viewableList.setCellFactory(param -> new ListCell<>() {
 			@Override
@@ -418,7 +382,7 @@ public class MainController {
 	}
 
 	public void setPathsListViewMessage(String message) {
-		String color = Core.getConfig("messageColor");
+		String color = Util.getAppConfig("messageColor");
 		Platform.runLater(() -> {
 			pathsListViewLabel.setText(message);
 			pathsListViewLabel.setStyle("-fx-text-fill: " + color + ";");
@@ -427,8 +391,8 @@ public class MainController {
 	}
 
 	public void setPathsListViewLabelError(Exception e) {
-		String stackTrace = Core.getExceptionStackTrace(e);
-		String color = Core.getConfig("errColor");
+		String stackTrace = Util.getExceptionStackTrace(e);
+		String color = Util.getAppConfig("errColor");
 		Platform.runLater(() -> {
 			pathsListViewLabel.setStyle("-fx-text-fill: " + color + ";");
 			pathsListViewLabel.setText(stackTrace);

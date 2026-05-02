@@ -4,14 +4,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.tonylimps.liberreach.core.*;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
-import org.tonylimps.liberreach.core.managers.ProfileManager;
+import org.tonylimps.liberreach.core.managers.ConfigManager;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -29,45 +28,38 @@ public class ConnectThread extends Thread {
 	private final AtomicBoolean running;
 
 	private final ExceptionManager exceptionManager;
-	private final ProfileManager profileManager;
+	private final ConfigManager configManager;
 	private final ResourceBundle bundle;
-	private final Profile profile;
+	private final Config config;
 	private final Token token;
 	private final UpdateThread updateThread;
 	private final HashMap<String, ViewableDevice> viewableDevices;
 	private final HashMap<String, AuthorizedDevice> authorizedDevices;
 	private ServerSocket serverSocket;
 
-	public ConnectThread(
-		ExceptionManager exceptionManager,
-		ResourceBundle resourceBundle,
-		AtomicBoolean running,
-		ProfileManager profileManager,
-		Token token,
-		UpdateThread updateThread
-	)
+	public ConnectThread(AppContext context, UpdateThread updateThread)
 	{
-		this.exceptionManager = exceptionManager;
-		this.profileManager = profileManager;
-		this.bundle = resourceBundle;
-		this.running = running;
-		this.token = token;
-		this.profile = profileManager.getProfile();
+		this.exceptionManager = context.exceptionManager;
+		this.configManager = context.configManager;
+		this.config = configManager.getConfig();
+		this.bundle = context.bundleManager.getBundle();
+		this.running = context.running;
+		this.token = context.token;
 		this.updateThread = updateThread;
-		this.viewableDevices = profile.getViewableDevices();
-		this.authorizedDevices = profile.getAuthorizedDevices();
+		this.viewableDevices = config.getViewableDevices();
+		this.authorizedDevices = config.getAuthorizedDevices();
 	}
 
 	@Override
 	public void run() {
 		try {
-			serverSocket = new ServerSocket(Integer.parseInt(Core.getConfig("defaultPort")));
+			serverSocket = new ServerSocket(Util.getAppConfig("defaultPort", int.class));
 			while (running.get()) {
 				// 不断接收套接字，并分配授权设备线程
 				// 根据规范，授权设备会主动连接查看设备
 				// 如果配置文件中有这个设备，就把命令线程和设备关联
 				Socket socket = serverSocket.accept();
-				AuthorizedCommandThread authorizedCommandThread = new AuthorizedCommandThread(socket, exceptionManager, bundle, profileManager, running, token, updateThread);
+				AuthorizedCommandThread authorizedCommandThread = new AuthorizedCommandThread(socket, exceptionManager, bundle, configManager, running, token, updateThread);
 				authorizedCommandThread.start();
 				InetSocketAddress address = new InetSocketAddress(socket.getInetAddress().getHostAddress(), socket.getPort());
 				AuthorizedDevice device = authorizedDevices.get(address);
@@ -97,7 +89,7 @@ public class ConnectThread extends Thread {
 			serverSocket.close();
 		}
 		catch (IOException e) {
-
+			// ignore
 		}
 		interrupt();
 		try {

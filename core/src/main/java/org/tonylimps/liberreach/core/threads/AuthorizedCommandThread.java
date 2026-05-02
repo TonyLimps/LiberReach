@@ -6,7 +6,7 @@ import org.apache.logging.log4j.Logger;
 import org.tonylimps.liberreach.core.*;
 import org.tonylimps.liberreach.core.enums.CommandType;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
-import org.tonylimps.liberreach.core.managers.ProfileManager;
+import org.tonylimps.liberreach.core.managers.ConfigManager;
 
 import java.io.*;
 import java.net.Socket;
@@ -32,15 +32,15 @@ public class AuthorizedCommandThread extends CommandThread {
 	public AuthorizedCommandThread(Socket socket,
 								   ExceptionManager exceptionManager,
 								   ResourceBundle bundle,
-								   ProfileManager profileManager,
+								   ConfigManager configManager,
 								   AtomicBoolean running,
 								   Token token,
 								   UpdateThread updateThread) {
 		try {
 			this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			this.out = new PrintWriter(socket.getOutputStream(), true);
-			this.profileManager = profileManager;
-			this.profile = profileManager.getProfile();
+			this.configManager = configManager;
+			this.config = configManager.getConfig();
 			this.running = running;
 			this.exceptionManager = exceptionManager;
 			this.token = token;
@@ -61,31 +61,31 @@ public class AuthorizedCommandThread extends CommandThread {
 				// 添加设备请求
 				if (command.get("token").equals(token.getValue())) {
 					// 如果令牌正确，回应允许命令
-					send(Core.createCommand(
+					send(Util.createCommand(
 						"type", ANSWER,
 						"answerType", ADD,
-						"name", profile.getDeviceName(),
-						"host", Core.getHostAddress(),
-						"port", Core.getConfig("defaultPort"),
+						"name", config.getDeviceName(),
+						"host", Util.getHostAddress(),
+						"port", Util.getAppConfig("defaultPort"),
 						"content", SUCCESS
 					));
-					profile.addAuthorizedDevice(new AuthorizedDevice(address, (String)command.get("name")));
-					profileManager.saveProfile();
+					config.addAuthorizedDevice(new AuthorizedDevice(address, (String)command.get("name")));
+					configManager.saveConfig();
 				}
 				else {
 					// 如果令牌错误，回应拒绝命令
-					send(Core.createCommand(
+					send(Util.createCommand(
 						"type", ANSWER,
 						"answerType", ADD,
-						"host", Core.getHostAddress(),
-						"port", Core.getConfig("defaultPort"),
+						"host", Util.getHostAddress(),
+						"port", Util.getAppConfig("defaultPort"),
 						"content", WRONGTOKEN
 					));
 				}
 			}
 			case HEARTBEAT -> {
 				boolean isAuthorized = isAuthorized();
-				send(Core.createCommand(
+				send(Util.createCommand(
 					"type", ANSWER,
 					"answerType", HEARTBEAT,
 					"online", true,
@@ -119,7 +119,7 @@ public class AuthorizedCommandThread extends CommandThread {
 						logger.error(e);
 					}
 				}
-				send(Core.createCommand(
+				send(Util.createCommand(
 					"type", ANSWER,
 					"answerType", GETPATH,
 					"paths", JSON.toJSONString(paths),
@@ -146,7 +146,7 @@ public class AuthorizedCommandThread extends CommandThread {
 	}
 
 	private boolean isAuthorized() {
-		AuthorizedDevice device = profile.getAuthorizedDevices().values().stream()
+		AuthorizedDevice device = config.getAuthorizedDevices().values().stream()
 			.filter(d -> d.getAddress().equals(address))
 			.findFirst().orElse(null);
 		if(device != null){

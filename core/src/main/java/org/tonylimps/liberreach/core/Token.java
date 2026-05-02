@@ -10,8 +10,8 @@ public class Token {
 	private final Logger logger = LogManager.getLogger(getClass());
 	private String value;
 
-	public void flush() throws NoSuchAlgorithmException {
-		value = Core.createToken();
+	public void refresh() throws NoSuchAlgorithmException {
+		value = Util.createToken();
 	}
 
 	public String getValue() {

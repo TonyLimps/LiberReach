@@ -1,0 +1,12 @@
+[versions]
+apache-logging-log4j = "2.25.4"
+alibaba-fastjson2 = "2.0.40"
+guava-jre = "33.6.0-jre"
+guava-android = "33.6.0-android"
+
+[libraries]
+apache-logging-log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "apache-logging-log4j" }
+apache-logging-log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "apache-logging-log4j" }
+alibaba-fastjson2 = { module = "com.alibaba.fastjson2:fastjson2", version.ref = "alibaba-fastjson2" }
+guava = { module = "com.google.guava:guava", version.ref = "guava-jre" }
+guava-android = { module = "com.google.guava:guava", version.ref = "guava-android" }

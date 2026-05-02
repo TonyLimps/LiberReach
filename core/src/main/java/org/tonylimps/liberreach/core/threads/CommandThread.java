@@ -3,10 +3,10 @@ package org.tonylimps.liberreach.core.threads;
 import com.alibaba.fastjson2.JSON;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.tonylimps.liberreach.core.Profile;
+import org.tonylimps.liberreach.core.Config;
 import org.tonylimps.liberreach.core.Token;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
-import org.tonylimps.liberreach.core.managers.ProfileManager;
+import org.tonylimps.liberreach.core.managers.ConfigManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,8 +23,8 @@ public class CommandThread extends Thread {
 	private final Logger logger = LogManager.getLogger(getClass());
 	protected AtomicBoolean running;
 
-	protected ProfileManager profileManager;
-	protected Profile profile;
+	protected ConfigManager configManager;
+	protected Config config;
 	protected ResourceBundle bundle;
 	protected BufferedReader in;
 	protected PrintWriter out;

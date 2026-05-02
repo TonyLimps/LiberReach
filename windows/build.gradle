@@ -1,0 +1,32 @@
+plugins {
+    id 'java-library'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+    id 'application'
+}
+
+dependencies {
+    api project(':core')
+    implementation libs.apache.logging.log4j.api
+    implementation libs.apache.logging.log4j.core
+    implementation libs.alibaba.fastjson2
+}
+
+description = 'windows'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+javafx {
+    version = "17.0.16"
+    modules = ['javafx.base', 'javafx.controls', 'javafx.fxml']
+}
+
+repositories {
+    mavenCentral()
+}
+
+application {
+    mainClass = 'org.tonylimps.liberreach.windows.Main'
+}

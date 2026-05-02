@@ -4,13 +4,15 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.tonylimps.liberreach.core.AppContext;
+import org.tonylimps.liberreach.core.Token;
+import org.tonylimps.liberreach.core.managers.ResourceBundleManager;
 import org.tonylimps.liberreach.core.threads.ConnectThread;
 import org.tonylimps.liberreach.core.threads.HeartBeatThread;
 import org.tonylimps.liberreach.core.threads.TokenThread;
 import org.tonylimps.liberreach.windows.managers.WindowManager;
 import org.tonylimps.liberreach.windows.managers.WindowsExceptionManager;
-import org.tonylimps.liberreach.windows.managers.WindowsProfileManager;
-import org.tonylimps.liberreach.windows.managers.WindowsResourceBundleManager;
+import org.tonylimps.liberreach.windows.managers.WindowsConfigManager;
 import org.tonylimps.liberreach.windows.threads.WindowsUpdateThread;
 
 import java.util.ResourceBundle;
@@ -26,14 +28,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 
 public class Main extends Application {
-
+	private static AppContext context;
 	private static final Logger logger = LogManager.getLogger(Main.class);
-	private static AtomicBoolean running;
-	// managers
-	private static WindowsProfileManager profileManager;
-	private static WindowsExceptionManager exceptionManager;
-	private static WindowsResourceBundleManager bundleManager;
-
 	// threads
 	private static TokenThread tokenThread;
 	private static ConnectThread connectThread;
@@ -41,22 +37,30 @@ public class Main extends Application {
 
 	public static void main(String[] args) {
 		logger.info("Program started.");
-		running = new AtomicBoolean(false);
+		AtomicBoolean running = new AtomicBoolean(false);
 		running.set(true);
-		exceptionManager = new WindowsExceptionManager();
-		profileManager = new WindowsProfileManager(exceptionManager);
-		bundleManager = new WindowsResourceBundleManager(exceptionManager, profileManager.getProfile());
+		WindowsExceptionManager exceptionManager = new WindowsExceptionManager();
+		WindowsConfigManager configManager = new WindowsConfigManager(exceptionManager);
+		ResourceBundleManager bundleManager = new ResourceBundleManager(exceptionManager, configManager.getConfig());
 
-		WindowsUpdateThread updateThread = new WindowsUpdateThread(exceptionManager, running, profileManager.getProfile());
+		AppContext.Builder builder = new AppContext.Builder();
+		builder.setBundleManager(bundleManager);
+		builder.setConfigManager(configManager);
+		builder.setExceptionManager(exceptionManager);
+		builder.setRunning(running);
+		builder.setToken(new Token());
+		context = builder.build();
+
+		WindowsUpdateThread updateThread = new WindowsUpdateThread(context);
 		updateThread.start();
 		logger.info("UI update thread started.");
-		tokenThread = new TokenThread(exceptionManager, running, updateThread);
+		tokenThread = new TokenThread(context);
 		tokenThread.start();
 		logger.info("Token thread started.");
-		connectThread = new ConnectThread(exceptionManager, bundleManager.getBundle(), running, profileManager, tokenThread.getToken(), updateThread);
+		connectThread = new ConnectThread(context, updateThread);
 		connectThread.start();
 		logger.info("Connect thread started.");
-		heartBeatThread = new HeartBeatThread(exceptionManager, running, profileManager, tokenThread.getToken(), updateThread);
+		heartBeatThread = new HeartBeatThread(context, updateThread);
 		heartBeatThread.start();
 		logger.info("Heartbeat thread started.");
 
@@ -64,7 +68,7 @@ public class Main extends Application {
 	}
 
 	public static void exit(int code) {
-		running.set(false);
+		context.running.set(false);
 		tokenThread.close();
 		connectThread.close();
 		heartBeatThread.close();
@@ -72,16 +76,8 @@ public class Main extends Application {
 		System.exit(code);
 	}
 
-	public static WindowsProfileManager getProfileManager() {
-		return profileManager;
-	}
-
-	public static WindowsExceptionManager getExceptionManager() {
-		return exceptionManager;
-	}
-
-	public static WindowsResourceBundleManager getResourceBundleManager() {
-		return bundleManager;
+	public static AppContext getContext() {
+		return context;
 	}
 
 	public static TokenThread getTokenThread() {
@@ -91,7 +87,7 @@ public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		try {
-			ResourceBundle bundle = bundleManager.getBundle();
+			ResourceBundle bundle = getContext().bundleManager.getBundle();
 			WindowManager.initWindow("settings", "/fxmls/settings.fxml", bundle);
 			WindowManager.initWindow("main", "/fxmls/main.fxml", bundle);
 			WindowManager.initWindow("add", "/fxmls/add.fxml", bundle);
@@ -101,7 +97,7 @@ public class Main extends Application {
 		catch (Exception e) {
 			logger.fatal("Load UI content failed.");
 			logger.error(e);
-			exceptionManager.throwException(e);
+			getContext().exceptionManager.throwException(e);
 		}
 	}
 

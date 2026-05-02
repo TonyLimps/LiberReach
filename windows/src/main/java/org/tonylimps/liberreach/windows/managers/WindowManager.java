@@ -5,6 +5,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.util.Pair;
+import org.tonylimps.liberreach.core.Util;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ public class WindowManager {
 		Parent root = fxmlLoader.load();
 		Scene scene = new Scene(root);
 		Stage stage = new Stage();
-		scene.getStylesheets().add(WindowManager.class.getResource("/style.css").toExternalForm());
+		scene.getStylesheets().add(WindowManager.class.getResource(Util.getAppConfig("windows.style")).toExternalForm());
 		stage.setScene(scene);
 		Object controller = fxmlLoader.getController();
 		initWindow(name, stage, root, controller);

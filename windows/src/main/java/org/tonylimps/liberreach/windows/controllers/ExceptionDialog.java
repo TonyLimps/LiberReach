@@ -7,7 +7,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.tonylimps.liberreach.core.Core;
+import org.tonylimps.liberreach.core.Util;
 import org.tonylimps.liberreach.windows.Main;
 import org.tonylimps.liberreach.windows.managers.WindowManager;
 
@@ -21,18 +21,18 @@ public class ExceptionDialog {
 	public ExceptionDialog(Exception e, int exceptions) {
 		this.exceptions = exceptions;
 		String message = e.getMessage();
-		String stackTrace = Core.getExceptionStackTrace(e);
+		String stackTrace = Util.getExceptionStackTrace(e);
 		Platform.runLater(() -> {
 			try {
 				FXMLLoader loader = new FXMLLoader(
 					getClass().getResource("/fxmls/exception.fxml")
 				);
-				ResourceBundle bundle = Main.getResourceBundleManager().getBundle();
+				ResourceBundle bundle = Main.getContext().bundleManager.getBundle();
 				loader.setResources(bundle);
 				Parent root = loader.load();
 				Stage stage = new Stage();
 				Scene scene = new Scene(root);
-				scene.getStylesheets().add("/style.css");
+				scene.getStylesheets().add(Util.getAppConfig("windows.style"));
 				stage.setScene(scene);
 				stage.setTitle(bundle.getString("exception.title"));
 				stage.setOnCloseRequest(event -> close());

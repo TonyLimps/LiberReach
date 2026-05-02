@@ -12,9 +12,10 @@ module org.tonylimps.liberreach.windows {
 
 	opens org.tonylimps.liberreach.windows;
     exports org.tonylimps.liberreach.windows;
-    exports org.tonylimps.liberreach.windows.controllers;
-    opens org.tonylimps.liberreach.windows.controllers to javafx.fxml;
-    exports org.tonylimps.liberreach.windows.managers;
 
-    opens org.tonylimps.liberreach.windows.managers to javafx.fxml;
+	opens org.tonylimps.liberreach.windows.controllers to javafx.fxml;
+    exports org.tonylimps.liberreach.windows.controllers;
+
+	opens org.tonylimps.liberreach.windows.managers to javafx.fxml;
+    exports org.tonylimps.liberreach.windows.managers;
 }

@@ -2,7 +2,8 @@ package org.tonylimps.liberreach.core.threads;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.tonylimps.liberreach.core.Core;
+import org.tonylimps.liberreach.core.AppContext;
+import org.tonylimps.liberreach.core.Util;
 import org.tonylimps.liberreach.core.Token;
 import org.tonylimps.liberreach.core.managers.ExceptionManager;
 
@@ -21,17 +22,15 @@ public class TokenThread extends Thread {
 
 	private final Token token;
 	private final ExceptionManager exceptionManager;
-	private final UpdateThread updateThread;
 	private final int flushDelaySeconds;
 	private int timeRemaining;
 
 
-	public TokenThread(ExceptionManager exceptionManager, AtomicBoolean running, UpdateThread updateThread) {
-		this.exceptionManager = exceptionManager;
-		this.running = running;
-		this.updateThread = updateThread;
-		flushDelaySeconds = Integer.parseInt(Core.getConfig("tokenFlushDelaySeconds"));
-		token = new Token();
+	public TokenThread(AppContext context) {
+		this.exceptionManager = context.exceptionManager;
+		this.running = context.running;
+		flushDelaySeconds = Util.getAppConfig("tokenRefreshDelaySeconds", int.class);
+		token = context.token;
 	}
 
 	public int getTimeRemaining() {
@@ -46,7 +45,7 @@ public class TokenThread extends Thread {
 	public void run() {
 		while (running.get()) {
 			try {
-				token.flush();
+				token.refresh();
 				timeRemaining = flushDelaySeconds;
 				for (int t = 0; t < flushDelaySeconds; t++) {
 					Thread.sleep(1000);

@@ -12,7 +12,7 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
- * 用户配置文件（Profile）类，用于存储和管理用户相关配置信息
+ * 用户配置文件（Config）类，用于存储和管理用户相关配置信息
  * <p>
  * 包括设备名称、语言设置、端口号及设备授权信息等
  *
@@ -28,15 +28,15 @@ import java.util.stream.Collectors;
  * </ul>
  * <p><b>构造方法：</b></p>
  * <ul>
- * <li>{@code Profile(String deviceName, Locale locale, Integer port)} -
+ * <li>{@code Config(String deviceName, Locale locale, Integer port)} -
  * 创建新的用户配置文档</li>
  * </ul>
  * <p><b>方法说明：</b></p>
  * <ul>
- * <li>{@code static Profile fromJSON(String json)} -
+ * <li>{@code static Config fromJSON(String json)} -
  * 将JSON字符串解析为配置对象
  * </li>
- * <li>{@code static Profile getEmptyProfile(String deviceName)} -
+ * <li>{@code static Config createEmptyConfig(String deviceName)} -
  * 创建一个默认配置对象
  * </li>
  * <li>{@code String toJSONString()} -
@@ -53,16 +53,14 @@ import java.util.stream.Collectors;
  * </ul>
  */
 
-public class Profile {
-
+public class Config {
 	private String deviceName;
 	private Locale locale;
 	private String defaultDownloadPath;
-
 	private HashMap<String, AuthorizedDevice> authorizedDevices;
 	private HashMap<String, ViewableDevice> viewableDevices;
 
-	public Profile(String deviceName, Locale locale, String defaultDownloadPath) {
+	public Config(String deviceName, Locale locale, String defaultDownloadPath) {
 		authorizedDevices = new HashMap<>();
 		viewableDevices = new HashMap<>();
 		this.defaultDownloadPath = defaultDownloadPath;
@@ -70,9 +68,9 @@ public class Profile {
 		this.locale = locale;
 	}
 
-	public static Profile fromJSON(String json) {
-		Profile profile = JSON.parseObject(json, Profile.class);
-		profile.getAuthorizedDevices().values().forEach(device -> {
+	public static Config fromJSON(String json) {
+		Config config = JSON.parseObject(json, Config.class);
+		config.getAuthorizedDevices().values().forEach(device -> {
 			try {
 				device.setAddress(InetAddress.getByName(device.getHost()));
 			}
@@ -80,7 +78,7 @@ public class Profile {
 				throw new JSONException(e.getMessage());
 			}
 		});
-		profile.getViewableDevices().values().forEach(device -> {
+		config.getViewableDevices().values().forEach(device -> {
 			try {
 				device.setAddress(InetAddress.getByName(device.getHost()));
 			}
@@ -88,7 +86,7 @@ public class Profile {
 				throw new JSONException(e.getMessage());
 			}
 		});
-		return profile;
+		return config;
 	}
 
 	public HashMap<String, AuthorizedDevice> getAuthorizedDevices() {
@@ -107,11 +105,11 @@ public class Profile {
 		this.viewableDevices = viewableDevices;
 	}
 
-	public static Profile getEmptyProfile(String deviceName) {
-		return new Profile(
+	public static Config createEmptyConfig(String deviceName) {
+		return new Config(
 			deviceName,
 			Locale.getDefault(),
-			Core.getConfig("defaultDownloadPath")
+			Util.getAppConfig("defaultDownloadPath")
 		);
 	}
 
@@ -140,7 +138,7 @@ public class Profile {
 		List<String> names = authorizedDevices.values().stream()
 			.map(AuthorizedDevice::getRemarkName)
 			.collect(Collectors.toList());
-		device.setRemarkName(Core.rename(name, names));
+		device.setRemarkName(Util.rename(name, names));
 		authorizedDevices.put(device.getRemarkName(), device);
 	}
 
@@ -149,7 +147,7 @@ public class Profile {
 		List<String> names = viewableDevices.values().stream()
 			.map(ViewableDevice::getRemarkName)
 			.collect(Collectors.toList());
-		device.setRemarkName(Core.rename(name, names));
+		device.setRemarkName(Util.rename(name, names));
 		viewableDevices.put(device.getRemarkName(), device);
 	}
 

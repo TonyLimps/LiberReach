@@ -50,7 +50,7 @@ public class FileSender {
 		this.port = port;
 		this.exceptionManager = exceptionManager;
 		totalSize = file.length();
-		pieceSize = Integer.parseInt(Core.getConfig("filePieceSize"));
+		pieceSize = Util.getAppConfig("filePieceSize", int.class);
 		totalPieces = totalSize % pieceSize == 0
 			? totalSize / pieceSize
 			: totalSize / pieceSize + 1;
@@ -101,7 +101,7 @@ public class FileSender {
 			while (i <= totalPieces) {
 				long startTime = System.currentTimeMillis();
 				int size = fi.read(buffer, 0, pieceSize);
-				String hash = Core.hashEncrypt(new String(buffer, 0, size));
+				String hash = Util.hashEncrypt(new String(buffer, 0, size));
 				dos.writeInt(i);
 				dos.writeInt(size);
 				dos.write(buffer, 0, size);
@@ -115,7 +115,7 @@ public class FileSender {
 						: (long) (size * 1000.0 / usedTimeMillis);
 					uploadedSize += size;
 					progress = (double) uploadedSize / totalSize;
-					logger.info("Uploading {} Progress: {}/{} Speed: {}", file.getName(), i, totalPieces, Core.formatSpeed(bytesPerSecond));
+					logger.info("Uploading {} Progress: {}/{} Speed: {}", file.getName(), i, totalPieces, Util.formatSpeed(bytesPerSecond));
 					i += 1;
 				}
 			}

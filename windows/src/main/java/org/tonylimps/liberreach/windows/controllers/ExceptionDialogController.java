@@ -11,8 +11,6 @@ public class ExceptionDialogController {
 	private Label messageLabel;
 	@FXML
 	private TextArea exceptionArea;
-
-
 	private int exceptions;
 	private String message;
 	private String stackTrace;
